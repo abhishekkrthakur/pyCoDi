@@ -2,10 +2,11 @@
 Image Operations
 
 Translation of CoDi saliency code from C++ to Python
+__author__ : Abhishek Thakur
 
 """
 import numpy as np
-import math
+#import math
 import cv2
 import pylab as pl
 import matplotlib.cm as cm
@@ -111,7 +112,7 @@ def createLaplacianPyramid(image,sigmaX=1.5,sigmaY=1.0,ksize=(5,5), level=1):
     '''
     gpyr =  createGaussianPyramid(image,sigmaX,sigmaY,ksize, level) 
     sm = pyr_lap(image,sigmaX,sigmaY,ksize, level+1)
-    lapimg = sm - gpyr #gpyr-sm
+    lapimg = gpyr-sm
     return lapimg
 
 def readImg(filename):
@@ -143,7 +144,7 @@ def readConvert(filename):
 
 
 #load and show an image in gray scale
-image = readImg('../testimages/popout_color_redgreen1.jpg')
+image = readImg('../testimages/dscn4311.jpg')
 
 print image.shape
 print "converting image"
@@ -155,19 +156,19 @@ print c1[0].shape, c1[1].shape, c1[2].shape
 #print i.shape
 #cv2.imshow('image', i[0])
 #cv2.waitKey(0)
-pl.imshow(i[0], cmap = cm.gray)  # @UndefinedVariable
+pl.imshow(c1[0], cmap = cm.gray)  # @UndefinedVariable
 pl.show()
 
-pl.imshow(i[1], cmap = cm.gray)  # @UndefinedVariable
+pl.imshow(c1[1], cmap = cm.gray)  # @UndefinedVariable
 pl.show()
 
-pl.imshow(i[2], cmap = cm.gray)  # @UndefinedVariable
+pl.imshow(c1[2], cmap = cm.gray)  # @UndefinedVariable
 pl.show()
 
-pl.imshow(i[3], cmap = cm.gray)  # @UndefinedVariable
+pl.imshow(c1[3], cmap = cm.gray)  # @UndefinedVariable
 pl.show()
 
-pl.imshow(i[4], cmap = cm.gray)  # @UndefinedVariable
+pl.imshow(c1[4], cmap = cm.gray)  # @UndefinedVariable
 pl.show()
 # #             
 #             
