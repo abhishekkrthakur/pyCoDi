@@ -30,13 +30,17 @@ def convertColorspace(src):
 
 	outImg = np.zeros((src.shape))
 
+	outImg[:,:,0] = (src[:,:,0] + src[:,:,1] + src[:,:,2]) / 3.0
+	outImg[:,:,1] = src[:,:,0] - src[:,:,1]
+	outImg[:,:,2] = src[:,:,2] - (src[:,:,0] + src[:,:,1]) / 2.0
+
 	# Create the Intensity channel...
 
-	for j in range(outImg.shape[0]):
-		for i in range(outImg.shape[1]): 
-			outImg[j,i,0] = (src[j,i,0] + src[j,i,1] + src[j,i,2]) / 3.0
-			outImg[j,i,1] = src[j,i,0] - src[j,i,1]
-			outImg[j,i,2] = src[j,i,2] - (src[j,i,0] + src[j,i,1]) / 2.0
+	# for j in range(outImg.shape[0]):
+	# 	for i in range(outImg.shape[1]): 
+	# 		outImg[j,i,0] = (src[j,i,0] + src[j,i,1] + src[j,i,2]) / 3.0
+	# 		outImg[j,i,1] = src[j,i,0] - src[j,i,1]
+	# 		outImg[j,i,2] = src[j,i,2] - (src[j,i,0] + src[j,i,1]) / 2.0
 
 	return outImg
 
@@ -143,8 +147,8 @@ def readConvert(filename):
 
 
 
-#load and show an image in gray scale
-image = readImg('../testimages/dscn4311.jpg')
+#load and show an image
+image = readImg('../testimages/test2.jpg')
 
 print image.shape
 print "converting image"
