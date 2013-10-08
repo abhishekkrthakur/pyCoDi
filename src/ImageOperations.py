@@ -10,6 +10,16 @@ import numpy as np
 import cv2
 import pylab as pl
 import matplotlib.cm as cm
+import time
+
+def timing(f):
+    def wrap(*args):
+        time1 = time.time()
+        ret = f(*args)
+        time2 = time.time()
+        print '%s function took %0.3f ms' % (f.func_name, (time2-time1)*1000.0)
+        return ret
+    return wrap
 
 def convertColorspace(src):
 	"""
@@ -83,6 +93,8 @@ def smoothImg(image, sigmaX, sigmaY, ksize):
     smoothed = cv2.GaussianBlur(image,ksize,sigmaX, sigmaY)
     return smoothed
 
+
+
 def pyr_lap(image,sigmaX=1.5,sigmaY=1.0,ksize=(5,5), level=1):
     '''
     Returns a given level of Gaussian Pyramid.
@@ -95,7 +107,7 @@ def pyr_lap(image,sigmaX=1.5,sigmaY=1.0,ksize=(5,5), level=1):
         i += 1
     
     return final_img
-                        
+
 def createGaussianPyramid(image,sigmaX=1.5,sigmaY=1.0,ksize=(5,5), level=1):
     '''
     Returns a given level of Gaussian Pyramid.
@@ -109,6 +121,7 @@ def createGaussianPyramid(image,sigmaX=1.5,sigmaY=1.0,ksize=(5,5), level=1):
     
     return currImg
 
+
 def createLaplacianPyramid(image,sigmaX=1.5,sigmaY=1.0,ksize=(5,5), level=1):
     '''
     Returns a given level of Laplacian Pyramid.
@@ -118,6 +131,7 @@ def createLaplacianPyramid(image,sigmaX=1.5,sigmaY=1.0,ksize=(5,5), level=1):
     sm = pyr_lap(image,sigmaX,sigmaY,ksize, level+1)
     lapimg = gpyr-sm
     return lapimg
+
 
 def readImg(filename):
 	"""
@@ -132,6 +146,7 @@ def readImg(filename):
 
 	return image
 
+
 def readConvert(filename):
 	"""
 	Read image and convert the colorspace...
@@ -145,35 +160,97 @@ def readConvert(filename):
 
 	return image
 
+@timing
+def supplementing_layers_intensity(img):
+	"""
+	This function adds supplementing layers to the image. 
+	Input: A layer of the DoG pyramid 
+	Output: Supplementing layers for the Intensity. The output has a list containing all the layers.
+			Output can be seen as L : [i, i**2]
+	"""
+
+	sizeImg = len(img.shape)
+
+	if not (sizeImg == 2):
+		raise AssertionError("Input to the supplementing_layers_intensity() function should be an image with 1 channels!")
+
+
+	L = []
+
+	i = img
+	i2 = np.multiply(i,i)
+	L.append(i)
+	L.append(i2)
+
+	return L
+
+@timing
+def supplementing_layers_color(img1,img2):
+	"""
+	This function adds supplementing layers to the image. 
+	Input: A layer of the DoG pyramid 
+	Output: Supplementing layers for the Color. The output has a list containing all the layers.
+			Output can be seen as L : [c1,c2,c1**2,c2**2,c1*c2]
+	"""
+
+	sizeImg = len(img1.shape)
+
+	if not (sizeImg == 2):
+		raise AssertionError("Input to the supplementing_layers_intensity() function should be an image with 1 channels!")
+
+
+	L = []
+
+	c1 = img1
+	c2 = img2
+	c1_2 = np.multiply(c1,2.0)
+	c2_2 = np.multiply(c2,2.0)
+
+	c1c2 = np.multiply(c1,c2)
+
+	L.append(c1)
+	L.append(c2)
+	L.append(c1_2)
+	L.append(c2_2)
+	L.append(c1c2)
+
+	return L
 
 
 #load and show an image
-image = readImg('../testimages/test2.jpg')
+image = readImg('../testimages/dscn4311.jpg')
 
-print image.shape
-print "converting image"
+pl.imshow(image, cmap = cm.gray)  # @UndefinedVariable
+pl.show()
+
+#print image.shape
+#print "converting image"
 l1 = convertColorspace(image) #(image[:,:,0], level = 1)
 i,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=1.5,sigmaY=1.0,ksize=(5,5))
 #i = createLaplacianPyramid(l1[:,:,0],sigmaX=1.5,sigmaY=1.0,ksize=(5,5), level=1)
 # print l1.shape
-print c1[0].shape, c1[1].shape, c1[2].shape
+#print c1[0].shape, c1[1].shape, c1[2].shape
 #print i.shape
 #cv2.imshow('image', i[0])
 #cv2.waitKey(0)
-pl.imshow(c1[0], cmap = cm.gray)  # @UndefinedVariable
-pl.show()
 
-pl.imshow(c1[1], cmap = cm.gray)  # @UndefinedVariable
-pl.show()
+L = supplementing_layers_color(c1[0], c2[0])#(i[0])
+L = supplementing_layers_intensity(i[0])#(i[0])
+#print L[0]
+#print L[1]
 
-pl.imshow(c1[2], cmap = cm.gray)  # @UndefinedVariable
-pl.show()
+# pl.imshow(L[0], cmap = cm.gray)  # @UndefinedVariable
+# pl.show()
 
-pl.imshow(c1[3], cmap = cm.gray)  # @UndefinedVariable
-pl.show()
+# pl.imshow(L[1], cmap = cm.gray)  # @UndefinedVariable
+# pl.show()
 
-pl.imshow(c1[4], cmap = cm.gray)  # @UndefinedVariable
-pl.show()
+# pl.imshow(L[2], cmap = cm.gray)  # @UndefinedVariable
+# pl.show()
+# pl.imshow(L[3], cmap = cm.gray)  # @UndefinedVariable
+# pl.show()
+# pl.imshow(L[4], cmap = cm.gray)  # @UndefinedVariable
+# pl.show()
 # #             
 #             
     
