@@ -226,7 +226,7 @@ pl.show()
 #print image.shape
 #print "converting image"
 l1 = convertColorspace(image) #(image[:,:,0], level = 1)
-i,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=1.5,sigmaY=1.0,ksize=(5,5))
+i,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=1.2,sigmaY=1.0,ksize=(5,5))
 #i = createLaplacianPyramid(l1[:,:,0],sigmaX=1.5,sigmaY=1.0,ksize=(5,5), level=1)
 # print l1.shape
 #print c1[0].shape, c1[1].shape, c1[2].shape
@@ -234,8 +234,8 @@ i,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=1.5,sigmaY=1.0,ksize=(5,5))
 #cv2.imshow('image', i[0])
 #cv2.waitKey(0)
 
-L = supplementing_layers_color(c1[0], c2[0])#(i[0])
-L = supplementing_layers_intensity(i[0])#(i[0])
+L = supplementing_layers_color(c1[4], c2[4])#(i[0])
+#L = supplementing_layers_intensity(i[4])#(i[0])
 #print L[0]
 #print L[1]
 
