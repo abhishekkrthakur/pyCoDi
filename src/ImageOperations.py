@@ -216,110 +216,43 @@ def supplementing_layers_color(img1,img2):
 
 	return L
 
-
-#load and show an image
-image = readImg('../testimages/dscn4311.jpg')
-
-pl.imshow(image, cmap = cm.gray)  # @UndefinedVariable
-pl.show()
-
-#print image.shape
-#print "converting image"
-l1 = convertColorspace(image) #(image[:,:,0], level = 1)
-i,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=1.2,sigmaY=1.0,ksize=(5,5))
-#i = createLaplacianPyramid(l1[:,:,0],sigmaX=1.5,sigmaY=1.0,ksize=(5,5), level=1)
-# print l1.shape
-#print c1[0].shape, c1[1].shape, c1[2].shape
-#print i.shape
-#cv2.imshow('image', i[0])
-#cv2.waitKey(0)
-
-L = supplementing_layers_color(c1[4], c2[4])#(i[0])
-#L = supplementing_layers_intensity(i[4])#(i[0])
-#print L[0]
-#print L[1]
-
-# pl.imshow(L[0], cmap = cm.gray)  # @UndefinedVariable
-# pl.show()
-
-# pl.imshow(L[1], cmap = cm.gray)  # @UndefinedVariable
-# pl.show()
-
-# pl.imshow(L[2], cmap = cm.gray)  # @UndefinedVariable
-# pl.show()
-# pl.imshow(L[3], cmap = cm.gray)  # @UndefinedVariable
-# pl.show()
-# pl.imshow(L[4], cmap = cm.gray)  # @UndefinedVariable
-# pl.show()
-# #             
-#             
-    
-
-# def gaussianBoxBlur(src, dst, sigmaX, sigmaY, n, borderType, filterPrecision):
-# 	if (sigmaY <= 0.0):
-# 		sigmaY = sigmaX
-
-# 	"""
-# 	cv::Mat src = _src.getMat();
-# 	_dst.create(src.size(), src.type());
-# 	cv::Mat dst = _dst.getMat();
-# 	"""
-
-# 	wx = 1
-# 	wy = 1
-# 	mx = n
-# 	my = n
-
-# 	sX = sigmaX
-# 	sY = sigmaY
-
-# 	ksizeW, ksizeH = max(2 * (int) (filterPrecision * sX) + 1, 3), max(2 * (int) (filterPrecision * sY) + 1, 3)
-
-# 	wx = (((((int) (math.sqrt((12.0 * sigmaX * sigmaX) / n + 1.0))) + 1) / 2) * 2) - 1
-
-# 	mx = math.ceil(((12 * sigmaX * sigmaX) - (n * wx * wx + 4 * n * wx + 3 * n)) / (-4 * wx - 4))
-
-# 	sX = sqrt(sigmaX * sigmaX - ((-mx * (4 * wx + 4) + n * wx * wx + 4 * n * wx + 3 * n) / 12.0))
-
-# 	if (n < (ksizeW - max(2 * (int) (filterPrecision * sX) + 1, 3))):
-# 		ksizeW = max(2 * (int) (filterPrecision * sX) + 1, 3)
-# 	else:
-# 		wx = 1
-# 		mx = n
-
-# 	wy = (((((int) (math.sqrt((12.0 * sigmaY * sigmaY) / n + 1.0))) + 1) / 2) * 2) - 1
-# 	my = math.ceil(((12 * sigmaY * sigmaY) - (n * wy * wy + 4 * n * wy + 3 * n)) / (-4 * wy - 4))
-
-# 	sY = sqrt(sigmaY * sigmaY - ((-my * (4 * wy + 4) + n * wy * wy + 4 * n * wy + 3 * n) / 12.0))
-
-# 	if (n < (ksizeH - max(2 * (int) (filterPrecision * sY) + 1, 3))):
-# 		ksizeH = max(2 * (int) (filterPrecision * sY) + 1, 3)
-# 	else:
-# 		wy = 1
-# 		my = n
-
-# 	if (wx > 1 or wy > 1):
-# 		sumType = cv2.CV_MAKETYPE(cv2.CV_64F, src.channels())
-# 		rowFilter = getRowSumFilter(src.type(), sumType, wx)
-# 		columnFilter = getColumnSumFilter(sumType, dst.type(), wy, -1, 1. / (wx * wy))
+def centerSurroundEstimate(std_center, std_surround):
 
 
 
 
+if __name__ == '__main__':
+	#load and show an image
+	image = readImg('../testimages/dscn4311.jpg')
 
+	pl.imshow(image, cmap = cm.gray)  # @UndefinedVariable
+	pl.show()
 
+	#print image.shape
+	#print "converting image"
+	l1 = convertColorspace(image) #(image[:,:,0], level = 1)
+	L,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=1.2,sigmaY=1.0,ksize=(5,5))
+	#i = createLaplacianPyramid(l1[:,:,0],sigmaX=1.5,sigmaY=1.0,ksize=(5,5), level=1)
+	# print l1.shape
+	#print c1[0].shape, c1[1].shape, c1[2].shape
+	#print i.shape
+	#cv2.imshow('image', i[0])
+	#cv2.waitKey(0)
 
+	#L = supplementing_layers_color(c1[4], c2[4])#(i[0])
+	#L = supplementing_layers_intensity(i[4])#(i[0])
+	#print L[0]
+	#print L[1]
 
+	pl.imshow(L[0], cmap = cm.gray)  # @UndefinedVariable
+	pl.show()
 
+	pl.imshow(L[1], cmap = cm.gray)  # @UndefinedVariable
+	pl.show()
 
-
-
-
-
-
-
-
-
-
-
-
+	pl.imshow(L[2], cmap = cm.gray)  # @UndefinedVariable
+	pl.show()
+	pl.imshow(L[3], cmap = cm.gray)  # @UndefinedVariable
+	pl.show()
+	pl.imshow(L[4], cmap = cm.gray)  # @UndefinedVariable
+	pl.show()
