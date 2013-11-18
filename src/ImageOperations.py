@@ -228,8 +228,11 @@ def csEstimate(image, std):
 
 	ks = int(math.ceil(3*std))
 	#print ks
+	if ks%2 == 0:
+		ks += 1
+	#print ks
 	ksize = (ks,ks)
-	return smoothImg(image, 1.5, 1.5, ksize)
+	return smoothImg(image, std, std, ksize)
 
 
 
