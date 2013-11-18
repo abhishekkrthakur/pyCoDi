@@ -11,6 +11,7 @@ import cv2
 import pylab as pl
 import matplotlib.cm as cm
 import time
+import math
 
 def timing(f):
     def wrap(*args):
@@ -216,7 +217,21 @@ def supplementing_layers_color(img1,img2):
 
 	return L
 
-def centerSurroundEstimate(std_center, std_surround):
+def csEstimate(image, std):
+	"""
+	Estimation of the center __mu__ and __sigma__ for the 
+	Normal Distributions of Intensity channel
+
+	Input: Image and standard deviation
+
+	"""
+
+	ks = int(math.ceil(3*std))
+	#print ks
+	ksize = (ks,ks)
+	return smoothImg(image, 1.5, 1.5, ksize)
+
+
 
 
 
