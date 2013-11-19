@@ -85,6 +85,35 @@ def getDOGPyramid(image, level, sigmaX=1.5,sigmaY=1.0,ksize=(5,5)):
 	return intList, c1List, c2List
 
 
+def getDOGPyramid_OLD(image, level, sigmaX=1.5,sigmaY=1.0,ksize=(5,5)):
+	"""
+	inputs:
+		image : must be a three dimensional array with the new colorspace
+		sigmaX : sigma in X direction, default value is 1.5
+		sigmaY : sigma in Y direction, default value is 1.0
+		ksize : size of the gaussian kernel
+		level : the level of pyramid that is required
+
+	output: three lists consisting of all the required pyramid levels for 
+			i, c1 and c2. 
+
+			Note: i[0] will give the lowest level.
+	"""
+
+	intList  = []
+	c1List = []
+	c2List = []
+
+	lvl = level
+
+	for i in range(lvl):
+		intList.append(np.asarray(createLaplacianPyramid(image[:,:,0], sigmaX=sigmaX, sigmaY=sigmaY, ksize=ksize, level = i)))
+		c1List.append(np.asarray(createLaplacianPyramid(image[:,:,1], sigmaX=sigmaX, sigmaY=sigmaY, ksize=ksize, level = i)))
+		c2List.append(np.asarray(createLaplacianPyramid(image[:,:,2], sigmaX=sigmaX, sigmaY=sigmaY, ksize=ksize, level = i)))
+
+	return intList, c1List, c2List
+
+
 
 def smoothImg(image, sigmaX, sigmaY, ksize):
     """
@@ -202,12 +231,12 @@ def supplementing_layers_color(img1,img2):
 
 	L = []
 
-	c1 = img1
+	c1 = (img1)
 	c2 = img2
-	c1_2 = np.multiply(c1,2.0)
-	c2_2 = np.multiply(c2,2.0)
-
-	c1c2 = np.multiply(c1,c2)
+	c1_2 = c1**2.0 #np.multiply(c1,2.0)
+	c2_2 = c2 **2.0#np.multiply(c2,2.0)
+	print c1.shape, c2.shape
+	c1c2 = c1 * c2 #np.dot(c1,c2)
 
 	L.append(c1)
 	L.append(c2)
