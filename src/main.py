@@ -9,6 +9,7 @@ import matplotlib.cm as cm
 from cv2 import *
 from scipy.linalg import sqrtm
 from skimage.transform.pyramids import pyramid_laplacian
+import sys
 
 
 def plotImg(image):
@@ -40,7 +41,7 @@ def csNDIntensity(image):
 	l1 = convertColorspace(image) 
 
 	print "create DOG pyramid..."
-	L,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=1.2,sigmaY=1.0,ksize=(5,5))
+	L,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=2.0,sigmaY=2.0,ksize=(5,5))
 
 
 	print "create supplimenting layers for intensity..."
@@ -103,7 +104,7 @@ def csNDColor(image):
 	l1 = convertColorspace(image) 
 
 	print "create DOG pyramid..."
-	L,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=1.2,sigmaY=1.0,ksize=(5,5))
+	L,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=2.0,sigmaY=2.0,ksize=(5,5))
 
 
 	print "create supplimenting layers for intensity..."
@@ -172,7 +173,7 @@ def csNDColor(image):
 			isSup[i][j] = (csEstimate(iSup[i][j], 10.0))
 
 	print "center normal distribution for all color layers..."	
-	plotImg(iSup[0][4])
+	#plotImg(iSup[0][4])
 	sND_Int_mu = []
 	for i in range(len(isSup)):
 		line = np.empty(isSup[i][0].shape, dtype = 'object')
@@ -221,7 +222,11 @@ def computeCSWassersteinIntensity(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int
 				t2 = sND_Int_sigma[i][j,k] + cND_Int_sigma[i][j,k] 
 				t3 = 2.0 * np.sqrt(np.sqrt(cND_Int_sigma[i][j,k]) * sND_Int_sigma[i][j,k] * np.sqrt(cND_Int_sigma[i][j,k]))
 
-				tempimg[j,k] = np.sqrt(t1 + t2 - t3)
+				if (t1 + t2 - t3) < 0:
+					tempimg[j,k] = 0.0
+				else:
+					tempimg[j,k] = np.sqrt(t1 + t2 - t3)
+
 
 		WInt.append(tempimg)
 
@@ -253,7 +258,7 @@ def computeCSWassersteinColor(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sig
 	WInt = []
 	#print (cND_Int_mu[0].shape), (cND_Int_sigma[0].shape), (sND_Int_mu[0].shape), (sND_Int_sigma[0].shape)
 	for i in range(len(cND_Int_mu)):
-		#print i
+		print i
 		#print "shapeeeeeee", cND_Int_mu[0][0].shape
 		tempimg = np.zeros((cND_Int_mu[i].shape))
 		for j in range(cND_Int_mu[i].shape[0]):
@@ -273,7 +278,7 @@ def computeCSWassersteinColor(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sig
 				#if p1 == np.nan:
 				#	print "NAN"
 				#try:
-				print ((np.linalg.det(np.dot(cND_Int_sigma[i][j,k], sND_Int_sigma[i][j,k]))))
+				#print ((np.linalg.det(np.dot(cND_Int_sigma[i][j,k], sND_Int_sigma[i][j,k]))))
 				p2 =  np.sqrt(abs((np.linalg.det(np.dot(cND_Int_sigma[i][j,k], sND_Int_sigma[i][j,k])))))
 				#except:
 				#	p2 = 0.0
@@ -288,7 +293,10 @@ def computeCSWassersteinColor(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sig
 				#t3 = np.nan_to_num(t3)
 				#t3 = 2.0 * np.trace(t3)
 				#print t3
-				tempimg[j,k] = np.sqrt(t1 + t2 - t3)
+				if (t1 + t2 - t3) < 0:
+					tempimg[j,k] = 0.0
+				else:
+					tempimg[j,k] = np.sqrt(t1 + t2 - t3)
 				#print tempimg[j,k]
 
 		WInt.append(tempimg)
@@ -316,51 +324,26 @@ def combineScales(imglist):
 if __name__ == '__main__':
 	# load the image as RGB, NOT BGR
 	print "load image..."
-	image = readImg('../testimages/dscn4311.jpg')
+	try:
+		filename = sys.argv[1]
+		image = readImg(filename)
 
-	cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma = csNDColor(image)
-	WInt1 = computeCSWassersteinColor(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma)
+		cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma = csNDColor(image)
+		WInt1 = computeCSWassersteinColor(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma)
 
-	#plotImg(WInt1)
+		cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma = csNDIntensity(image)
+		WInt2 = computeCSWassersteinIntensity(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma)
 
-	cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma = csNDIntensity(image)
-	WInt2 = computeCSWassersteinIntensity(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma)
+		s1 = combineScales(WInt1)
+		s2 = combineScales(WInt2)
 
-	#plotImg(WInt2)
+		s = (s1 + s2)/2.0
+		plotImg(s1)
+		plotImg(s2)
+		plotImg(s)
 
-	#WInt = (np.asarray(WInt1) + np.asarray(WInt2))/2.0
-	#print (cND_Int_mu[0].shape)
-	#print cv.CalcEMD2(cND_Int_mu[0],cND_Int_mu[0],cv.CV_DIST_L2)
-
-
-	s1 = combineScales(WInt1)
-	s2 = combineScales(WInt2)
-
-	s = (s1 + s2)/2.0
-	plotImg(s)
-	#plotImg(WInt[1])
-	#plotImg(WInt[2])
-	#plotImg(WInt[3])
-	#plotImg(WInt[4])
-
-	# plotImg(cND_Int_mu[0][])
-
-	#plotND(sND_Int_mu[4][0,0], sND_Int_sigma[4][0,0]) 
-	#plotND(cND_Int_mu[4][0,0], cND_Int_sigma[4][0,0]) 
-
-
-	# print "create supplimenting layers for color..."
-
-	# cSup = []
-
-	# for i in range(len(c1)):
-	# 	colorSup = supplementing_layers_color(c1[i], c2[i])
-	# 	cSup.append(colorSup)
-
-	# print len(cSup)
-	# print len(cSup[0])
-
-
+	except:
+		print "no filename entered"
 
 
 
