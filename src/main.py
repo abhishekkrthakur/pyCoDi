@@ -10,11 +10,24 @@ from cv2 import *
 from scipy.linalg import sqrtm
 from skimage.transform.pyramids import pyramid_laplacian
 import sys
+import Image
 
 
-def plotImg(image):
-	pl.imshow(image, cmap = cm.gray)  
-	pl.show()
+def savePlot(data):
+#Rescale to 0-255 and convert to uint8
+	rescaled = (255.0 / data.max() * (data - data.min())).astype(np.uint8)
+
+	im = Image.fromarray(rescaled)
+	im.save('saliency.png')
+
+
+def plotImg(data):
+	rescaled = (255.0 / data.max() * (data - data.min())).astype(np.uint8)
+	cv2.imshow('plot of image', rescaled)
+	cv2.waitKey(0)
+	#pl.imshow(image, cmap = cm.gray) 
+	#pl.tight_layout() 
+	#pl.show()
 
 
 import matplotlib.pyplot as plt
@@ -41,7 +54,7 @@ def csNDIntensity(image):
 	l1 = convertColorspace(image) 
 
 	print "create DOG pyramid..."
-	L,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=2.0,sigmaY=2.0,ksize=(5,5))
+	L,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=1.5,sigmaY=1.5,ksize=(7,7))
 
 
 	print "create supplimenting layers for intensity..."
@@ -80,7 +93,7 @@ def csNDIntensity(image):
 	print "get surround gaussian for all supplimenting layers of intensity..."
 	for i in range(len(iSup)):
 		for j in range(len(iSup[i])):
-			isSup[i][j] = csEstimate(iSup[i][j], 10.0)
+			isSup[i][j] = csEstimate(iSup[i][j], 25.0)
 
 	#print icSup[0][0][0,0], iSup[0][0][0,0], isSup[0][0][0,0]
 
@@ -104,7 +117,7 @@ def csNDColor(image):
 	l1 = convertColorspace(image) 
 
 	print "create DOG pyramid..."
-	L,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=2.0,sigmaY=2.0,ksize=(5,5))
+	L,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=1.5,sigmaY=1.5,ksize=(7,7))
 
 
 	print "create supplimenting layers for intensity..."
@@ -170,7 +183,7 @@ def csNDColor(image):
 	print "get center gaussian for all supplimenting layers of color..."
 	for i in range(len(iSup)):
 		for j in range(len(iSup[i])):
-			isSup[i][j] = (csEstimate(iSup[i][j], 10.0))
+			isSup[i][j] = (csEstimate(iSup[i][j], 25.0))
 
 	print "center normal distribution for all color layers..."	
 	#plotImg(iSup[0][4])
@@ -326,24 +339,25 @@ if __name__ == '__main__':
 	print "load image..."
 	try:
 		filename = sys.argv[1]
-		image = readImg(filename)
-
-		cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma = csNDColor(image)
-		WInt1 = computeCSWassersteinColor(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma)
-
-		cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma = csNDIntensity(image)
-		WInt2 = computeCSWassersteinIntensity(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma)
-
-		s1 = combineScales(WInt1)
-		s2 = combineScales(WInt2)
-
-		s = (s1 + s2)/2.0
-		plotImg(s1)
-		plotImg(s2)
-		plotImg(s)
-
 	except:
 		print "no filename entered"
+
+	image = readImg(filename)
+
+	cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma = csNDColor(image)
+	WInt1 = computeCSWassersteinColor(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma)
+
+	cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma = csNDIntensity(image)
+	WInt2 = computeCSWassersteinIntensity(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma)
+
+	s1 = combineScales(WInt1)
+	s2 = combineScales(WInt2)
+
+	s = (s1 + s2)/2.0
+	plotImg(s1)
+	plotImg(s2)
+	plotImg(s)
+	savePlot(s)
 
 
 
