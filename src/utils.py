@@ -65,29 +65,29 @@ def scaleSpaceRepresentation(image, scales, octaves):
 			#tempimg = Oct[i, j+1]
 
 	#print Oct[2,0]
-	plotImg(Oct[0,0][:,:,0])
-	plotImg(Oct[0,1])
-	plotImg(Oct[0,2])
-	plotImg(Oct[0,3])
-	plotImg(Oct[1,0])
-	plotImg(Oct[1,1])
-	plotImg(Oct[1,2])
-	plotImg(Oct[1,3])
-	plotImg(Oct[2,0])
-	plotImg(Oct[2,1])
-	plotImg(Oct[2,2])
-	plotImg(Oct[2,3])
+	# plotImg(Oct[0,0][:,:,0])
+	# plotImg(Oct[0,1])
+	# plotImg(Oct[0,2])
+	# plotImg(Oct[0,3])
+	# plotImg(Oct[1,0])
+	# plotImg(Oct[1,1])
+	# plotImg(Oct[1,2])
+	# plotImg(Oct[1,3])
+	# plotImg(Oct[2,0])
+	# plotImg(Oct[2,1])
+	# plotImg(Oct[2,2])
+	# plotImg(Oct[2,3])
 
 	print Oct[1:,:-1].shape
 	return Oct[1:,:-1]
 
 
-def SSCS_supp_Intensity(OSMatrix):
+def SS_supp_Intensity(OSMatrix):
 	"""
 	
-	Create supplimenting layers for the intensity channel.
+	Create supplimenting layers for the intensity channel (every Octave and every scale!!) .
 	Input: Octvave-Scale matrix
-	Output: i, i^2 Matrices in the same format as the OSMatrix
+	Output: i, i^2 Matrices for every scale and every octave in the same format as the OSMatrix
 
 	"""
 	supInt1 = np.empty((OSMatrix.shape), dtype = 'object')
@@ -100,11 +100,132 @@ def SSCS_supp_Intensity(OSMatrix):
 
 	return supInt1, supInt2
 
+def SS_supp_Color(OSMatrix):
+	"""
 
-def SSCS_Dist_Intensity(OSMatrix):
+	Create supplimenting layers for color channel (Every Octave and every scale is used!)
+	Input : Octvave-Scale matrix
+	Output : c1,c2,c1**2,c2**2, c1c2 for every scale and every octave in the same format as OSMatrix
+	"""
+
+	c1 = np.empty((OSMatrix.shape), dtype = 'object')
+	c2 = np.empty((OSMatrix.shape), dtype = 'object')
+	c1_2 = np.empty((OSMatrix.shape), dtype = 'object')
+	c2_2 = np.empty((OSMatrix.shape), dtype = 'object')
+	c1c2 = np.empty((OSMatrix.shape), dtype = 'object')
+
+	for i in range(OSMatrix.shape[0]):
+		#print i
+		for j in range(OSMatrix.shape[1]):
+			c1[i,j] = OSMatrix[i,j][:,:,1]
+			c2[i,j] = OSMatrix[i,j][:,:,2]
+			c1_2[i,j] = c1[i,j] ** 2.0 
+			c2_2[i,j] = c2[i,j] ** 2.0
+			c1c2[i,j] = c1[i,j] * c2[i,j]
+
+	return c1,c2,c1_2,c2_2,c1c2
 
 
+def SSCS_Dist_Intensity(OSMatrix, sizeIn, sizeOut):
+	"""
+	
+	Creates center-surround matrix for all scales and octaves
+	present in the Octvave-Scale matrix.
 
+	params:
+		OSMatrix = Octvave-Scale Matrix
+		sizeIn = center Gaussian standard deviation
+		sizeOut = surround Gaussian standard deviation
+	
+	Output: 
+
+		mu_c_int		|
+		sig_c_int		| All are of the same shape as OSMatrix
+		mu_s_int		| All contain a single mean/variance value as they are one-dimensional
+		sig_s_int		|
+
+	"""
+
+	# get the supplimenting layers first:
+	supInt1, supInt2 = SS_supp_Intensity(OSMatrix)
+
+	mu_c_int = np.empty((supInt1.shape), dtype = 'object')
+	sig_c_int = np.empty((supInt2.shape), dtype = 'object')
+	mu_s_int = np.empty((supInt1.shape), dtype = 'object')
+	sig_s_int = np.empty((supInt2.shape), dtype = 'object')
+
+
+	for i in range(supInt1.shape[0]):
+		print i
+		for j in range(supInt1.shape[1]):
+			inten = supInt1[i,j]
+			inten2 = supInt2[i,j]
+			mu_c_int[i,j] = csEstimate(inten, sizeIn)
+			mu_s_int[i,j] = csEstimate(inten, sizeOut)
+			sig_c_int[i,j] = csEstimate(inten2, sizeIn) - np.multiply(csEstimate(inten,sizeIn), csEstimate(inten,sizeIn))
+			#print sig_c_int[i,j]
+			sig_s_int[i,j] = csEstimate(inten2, sizeOut) - np.multiply(csEstimate(inten,sizeOut), csEstimate(inten,sizeOut))
+
+	return mu_c_int, sig_c_int, mu_s_int, sig_s_int
+
+
+def SSCS_Dist_Color(OSMatrix, sizeIn, sizeOut):
+	"""
+	
+	Creates center-surround matrix for all scales and octaves
+	present in the Octvave-Scale matrix.
+
+	params:
+		OSMatrix = Octvave-Scale Matrix
+		sizeIn = center Gaussian standard deviation
+		sizeOut = surround Gaussian standard deviation
+	
+	Output: 
+
+		mu_c_col		|
+		sig_c_col		| All are of the same shape as OSMatrix
+		mu_s_col		| All contain a matrix of mean/variance value as they are "2-Dimensional"
+		sig_s_col		|
+
+	"""
+
+	c1,c2,c1_2,c2_2,c1c2 = SS_supp_Color(OSMatrix)
+
+	mu_c_col = np.empty((OSMatrix.shape), dtype = 'object')
+	mu_s_col = np.empty((OSMatrix.shape), dtype = 'object')
+	sig_c_col = np.empty((OSMatrix.shape), dtype = 'object')
+	sig_c_col = np.empty((OSMatrix.shape), dtype = 'object')
+
+
+	# Find c1_bar, c2_bar, c1_2_bar, c2_2_bar, c1c2_bar  |||||| for center and surround
+	c1_bar_c = np.empty((OSMatrix.shape), dtype = 'object')
+	c2_bar_c = np.empty((OSMatrix.shape), dtype = 'object')
+	c1_2_bar_c = np.empty((OSMatrix.shape), dtype = 'object')
+	c2_2_bar_c = np.empty((OSMatrix.shape), dtype = 'object')
+	c1c2_bar_c = np.empty((OSMatrix.shape), dtype = 'object')
+
+	c1_bar_s = np.empty((OSMatrix.shape), dtype = 'object')
+	c2_bar_s = np.empty((OSMatrix.shape), dtype = 'object')
+	c1_2_bar_s = np.empty((OSMatrix.shape), dtype = 'object')
+	c2_2_bar_s = np.empty((OSMatrix.shape), dtype = 'object')
+	c1c2_bar_s = np.empty((OSMatrix.shape), dtype = 'object')
+
+	for i in range(OSMatrix.shape[0]):
+		for j in range(OSMatrix.shape[1]):
+			c1_bar_c[i,j] = smoothImg(c1[i,j], sizeIn)
+			c1_bar_s[i,j] = smoothImg(c1[i,j], sizeOut)
+
+			c1_2_bar_c[i,j] = smoothImg(c1_2[i,j], sizeIn)
+			c1_2_bar_s[i,j] = smoothImg(c1_2[i,j], sizeOut)
+
+			c2_2_bar_c[i,j] = smoothImg(c2_2[i,j], sizeIn)
+			c2_2_bar_s[i,j] = smoothImg(c2_2[i,j], sizeOut)
+
+			c1c2_bar_c[i,j] = smoothImg(c1c2[i,j], sizeIn)
+			c1c2_bar_s[i,j] = smoothImg(c1c2[i,j], sizeOut)
+
+
+	
 
 def normalize(arr):
     for i in range(3):
@@ -116,10 +237,12 @@ def normalize(arr):
             arr[..., i] *= (255.0 / (maxval - minval))
     return arr
 
-def plotND(mean, variance):
+def plot1DND(mean, variance):
 	sigma = np.sqrt(variance)
-	x = np.linspace(-10,10,1000)
-	plt.plot(x,mlab.normpdf(x,mean,sigma))
+	mu = mean
+	s = np.random.normal(mu, sigma, 1000)
+	count, bins, ignored = plt.hist(s, 30, normed=True)
+	plt.plot(bins, 1/(sigma * np.sqrt(2 * np.pi)) * np.exp( - (bins - mu)**2 / (2 * sigma**2) ),linewidth=2, color='r')
 	plt.show()
 
 def csNDIntensity(image):
@@ -389,4 +512,7 @@ def combineScales(imglist):
 
 if __name__ == '__main__':
 	image = readConvert('../testimages/dscn4311.jpg')
-	scaleSpaceRepresentation(image, scales = 3, octaves = 2)
+	OSMatrix = scaleSpaceRepresentation(image, scales = 3, octaves = 2)
+	mu_c_int, sig_c_int, mu_s_int, sig_s_int = SSCS_Dist_Intensity(OSMatrix, 1.0, 10.0)
+	print mu_c_int[0,0][0,0], sig_c_int[0,0][0,0]
+	plot1DND(mu_c_int[0,0][0,1], sig_c_int[0,0][0,1])
