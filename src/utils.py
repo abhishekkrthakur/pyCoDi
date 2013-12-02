@@ -77,6 +77,7 @@ def gauss_ell(mu, va, dim = [0, 1], npoints = 100, level = 0.39):
         elps    += np.dot(np.diag(np.sqrt(va)), circle)
     elif mode == 'full':
         va  = va[c,:][:,c]
+        #print "va = ", v a
         # Method: compute the cholesky decomp of each cov matrix, that is
         # compute cova such as va = cova * cova' 
         # WARN: scipy is different than matlab here, as scipy computes a lower
@@ -205,7 +206,7 @@ def SS_supp_Color(OSMatrix):
 			c2[i,j] = OSMatrix[i,j][:,:,2]
 			c1_2[i,j] = c1[i,j] ** 2.0 
 			c2_2[i,j] = c2[i,j] ** 2.0
-			c1c2[i,j] = c1[i,j] * c2[i,j]
+			c1c2[i,j] = np.multiply(c1[i,j], c2[i,j])
 
 	return c1,c2,c1_2,c2_2,c1c2
 
@@ -392,6 +393,18 @@ def plot1DND(mean, variance):
 	count, bins, ignored = plt.hist(s, 30, normed=True)
 	plt.plot(bins, 1/(sigma * np.sqrt(2 * np.pi)) * np.exp( - (bins - mu)**2 / (2 * sigma**2) ),linewidth=2, color='r')
 	plt.show()
+
+def plot2DND(mean, variance):
+	mean1 = mean.flatten()
+	cov1 = variance
+
+	nobs = 2500
+	rvs1 = np.random.multivariate_normal(mean1, cov1, size=nobs)
+
+	plt.plot(rvs1[:, 0], rvs1[:, 1], '.')
+	plt.axis('equal')
+	plt.show()
+
 
 def csNDIntensity(image):
 	print "convert colorspace..."
@@ -663,41 +676,5 @@ if __name__ == '__main__':
 	OSMatrix = scaleSpaceRepresentation(image, scales = 3, octaves = 2)
 	mu_c_int, sig_c_int, mu_s_int, sig_s_int = SSCS_Dist_Color(OSMatrix, 1.0, 10.0)
 	#print mu_c_int[0,0][0,0], sig_c_int[0,0][0,0]
-	#plot1DND(mu_c_int[0,0][0,1], sig_c_int[0,0][0,1])
-	cov1 = np.array([[1, 0.7],[0.7, 1]]) * 0.02
-	mean1 = np.array([1,2]) /4.
-	cov2 = np.array([[1, -0.3],[-0.3, 1]]) * 0.02
-	mean2 = np.array([2,1]) /4.
-	cov3 = np.array([[1, 0],[0, 0.5]]) * 0.02
-	mean3 = np.array([2,2]) *2. /4.
-
-	nobs = 1000
-	rvs1 = np.random.multivariate_normal(mean1, cov1, size=nobs)
-	rvs2 = np.random.multivariate_normal(mean2, cov2, size=nobs)
-	rvs3 = np.random.multivariate_normal(mean3, cov3, size=nobs)
+	plot2DND(mu_c_int[0,0][0,1], sig_c_int[0,0][0,1])
 	
-
-	bvn = BVN()
-	bvn.covars = [cov1, cov2, cov3]
-	bvn.mean = np.vstack([mean1, mean2, mean3])
-
-
-
-	fig = plt.figure()
-	#plt.plot(*rvs1.T, ls='.', color='r', alpha=0.25)
-	#plt.plot(*rvs2.T, ls='.', color='g', alpha=0.25)
-	#plt.plot(*rvs3.T, ls='.', color='b', alpha=0.25)
-	level = 0.9
-	# for rvs, c in zip([rvs1, rvs2, rvs3], 'rgb'):
-	#     plt.plot(*rvs.T, ls='none', marker='.', color=c)#, alpha=0.25)
-	# ax = plt.gca()
-	# make_ellipses(bvn, ax, level=level)
-
-	e1, e2 = gauss_ell(mean1, cov1, dim = [0, 1], npoints = 200, level =level)
-	plt.plot(e1, e2, 'r')
-	#e1, e2 = gauss_ell(mean2, cov2, dim = [0, 1], npoints = 200, level = level)
-	#plt.plot(e1, e2, 'r')
-	#e1, e2 = gauss_ell(mean3, np.diag(cov3), dim = [0, 1], npoints = 200, 
-	                  # level = level)
-	#plt.plot(e1, e2, 'r')
-	plt.show()
