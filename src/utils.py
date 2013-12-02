@@ -13,6 +13,10 @@ import os
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
 
+import matplotlib as mpl
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
 
 def savePlot(data, filename):
 #Rescale to 0-255 and convert to uint8
@@ -30,6 +34,86 @@ def plotImg(data):
 	#pl.imshow(image, cmap = cm.gray) 
 	#pl.tight_layout() 
 	#pl.show()
+
+#function from David Cournapeau original scikits.learn em code
+# To plot a confidence ellipse from multi-variate gaussian pdf
+def gauss_ell(mu, va, dim = [0, 1], npoints = 100, level = 0.39):
+    """ Given a mean and covariance for multi-variate
+    gaussian, returns npoints points for the ellipse
+    of confidence given by level (all points will be inside
+    the ellipsoides with a probability equal to level)
+    
+    Returns the coordinate x and y of the ellipse"""
+    
+    c       = np.array(dim)
+
+    if mu.size < 2:
+        raise RuntimeError("this function only make sense for dimension 2 and more")
+
+    if mu.size == va.size:
+        mode    = 'diag'
+    else:
+        if va.ndim == 2:
+            if va.shape[0] == va.shape[1]:
+                mode    = 'full'
+            else:
+                raise DenError("variance not square")
+        else:
+            raise DenError("mean and variance are not dim conformant")
+
+    # If X ~ N(mu, va), then [X` * va^(-1/2) * X] ~ Chi2
+    chi22d  = stats.chi2(2)
+    mahal   = np.sqrt(chi22d.ppf(level))
+    
+    # Generates a circle of npoints
+    theta   = np.linspace(0, 2 * np.pi, npoints)
+    circle  = mahal * np.array([np.cos(theta), np.sin(theta)])
+
+    # Get the dimension which we are interested in:
+    mu  = mu[dim]
+    if mode == 'diag':
+        va      = va[dim]
+        elps    = np.outer(mu, np.ones(npoints))
+        elps    += np.dot(np.diag(np.sqrt(va)), circle)
+    elif mode == 'full':
+        va  = va[c,:][:,c]
+        # Method: compute the cholesky decomp of each cov matrix, that is
+        # compute cova such as va = cova * cova' 
+        # WARN: scipy is different than matlab here, as scipy computes a lower
+        # triangular cholesky decomp: 
+        #   - va = cova * cova' (scipy)
+        #   - va = cova' * cova (matlab)
+        # So take care when comparing results with matlab !
+        cova    = np.linalg.cholesky(va)
+        elps    = np.outer(mu, np.ones(npoints))
+        elps    += np.dot(cova, circle)
+    else:
+        raise DenParam("var mode not recognized")
+
+    return elps[0, :], elps[1, :]
+
+
+#from sklearn gmm
+def make_ellipses(bvn, ax, level=0.95):
+    for n, color in enumerate('rgb'):
+        v, w = np.linalg.eigh(bvn.covars[n][:2, :2])
+        print v, w
+        u = w[0] / np.linalg.norm(w[0])
+        angle = np.arctan(u[1]/u[0])
+        angle = 180 * angle / np.pi # convert to degrees
+        #v *= 39#25#9
+        v = 2 * np.sqrt(v * stats.chi2.ppf(level, 2)) #JP
+        ell = mpl.patches.Ellipse(bvn.mean[n, :2], v[0], v[1], 180 + angle,
+                                  facecolor='none', 
+                                  edgecolor=None, #color,
+                                  ls='dashed',
+                                  lw=3)
+        ell.set_clip_box(ax.bbox)
+        ell.set_alpha(0.5)
+        ax.add_artist(ell)
+        
+class BVN(object):
+    pass
 
 def scaleSpaceRepresentation(image, scales, octaves):
 	"""
@@ -194,10 +278,10 @@ def SSCS_Dist_Color(OSMatrix, sizeIn, sizeOut):
 	mu_c_col = np.empty((OSMatrix.shape), dtype = 'object')
 	mu_s_col = np.empty((OSMatrix.shape), dtype = 'object')
 	sig_c_col = np.empty((OSMatrix.shape), dtype = 'object')
-	sig_c_col = np.empty((OSMatrix.shape), dtype = 'object')
+	sig_s_col = np.empty((OSMatrix.shape), dtype = 'object')
 
 
-	# Find c1_bar, c2_bar, c1_2_bar, c2_2_bar, c1c2_bar  |||||| for center and surround
+	# Find c1_bar, c2_bar, c1_2_bar, c2_2_bar, c1c2_bar for center and surround
 	c1_bar_c = np.empty((OSMatrix.shape), dtype = 'object')
 	c2_bar_c = np.empty((OSMatrix.shape), dtype = 'object')
 	c1_2_bar_c = np.empty((OSMatrix.shape), dtype = 'object')
@@ -212,20 +296,84 @@ def SSCS_Dist_Color(OSMatrix, sizeIn, sizeOut):
 
 	for i in range(OSMatrix.shape[0]):
 		for j in range(OSMatrix.shape[1]):
-			c1_bar_c[i,j] = smoothImg(c1[i,j], sizeIn)
-			c1_bar_s[i,j] = smoothImg(c1[i,j], sizeOut)
+			c1_bar_c[i,j] = csEstimate(c1[i,j], sizeIn)
+			c1_bar_s[i,j] = csEstimate(c1[i,j], sizeOut)
 
-			c1_2_bar_c[i,j] = smoothImg(c1_2[i,j], sizeIn)
-			c1_2_bar_s[i,j] = smoothImg(c1_2[i,j], sizeOut)
+			c2_bar_c[i,j] = csEstimate(c2[i,j], sizeIn)
+			c2_bar_s[i,j] = csEstimate(c2[i,j], sizeOut)
 
-			c2_2_bar_c[i,j] = smoothImg(c2_2[i,j], sizeIn)
-			c2_2_bar_s[i,j] = smoothImg(c2_2[i,j], sizeOut)
+			c1_2_bar_c[i,j] = csEstimate(c1_2[i,j], sizeIn)
+			c1_2_bar_s[i,j] = csEstimate(c1_2[i,j], sizeOut)
 
-			c1c2_bar_c[i,j] = smoothImg(c1c2[i,j], sizeIn)
-			c1c2_bar_s[i,j] = smoothImg(c1c2[i,j], sizeOut)
+			c2_2_bar_c[i,j] = csEstimate(c2_2[i,j], sizeIn)
+			c2_2_bar_s[i,j] = csEstimate(c2_2[i,j], sizeOut)
+
+			c1c2_bar_c[i,j] = csEstimate(c1c2[i,j], sizeIn)
+			c1c2_bar_s[i,j] = csEstimate(c1c2[i,j], sizeOut)
+
+	# create mu for center and surround
+
+	for i in range(OSMatrix.shape[0]):
+		for j in range(OSMatrix.shape[1]):
+			tempmu1 = np.zeros((2,1))
+			tempmu2 = np.zeros((2,1))
+			temparr1 = np.empty((c1[i,j].shape), dtype = 'object')
+			temparr2 = np.empty((c1[i,j].shape), dtype = 'object')
+
+			for p in range(c1[i,j].shape[0]):
+				for q in range(c2[i,j].shape[1]):
+					#print c1_bar_c[i,j][p,q]
+					#print c2_bar_c[i,j][p,q]
+					tempmu1[0,0] = c1_bar_c[i,j][p,q]
+					tempmu1[1,0] = c2_bar_c[i,j][p,q]
+					tempmu2[0,0] = c1_bar_s[i,j][p,q]
+					tempmu2[1,0] = c2_bar_s[i,j][p,q]
+
+					temparr1[p,q] = tempmu1
+					temparr2[p,q] = tempmu2
+
+			mu_c_col[i,j] = temparr1
+			mu_s_col[i,j] = temparr2
+
+	# create sigma for center and surround
+
+	for i in range(OSMatrix.shape[0]):
+		for j in range(OSMatrix.shape[1]):
+			tempmu1 = np.zeros((2,2))
+			tempmu2 = np.zeros((2,2))
+			temparr1 = np.empty((c1[i,j].shape), dtype = 'object')
+			temparr2 = np.empty((c1[i,j].shape), dtype = 'object')
+
+			for p in range(c1[i,j].shape[0]):
+				for q in range(c2[i,j].shape[1]):
+					#print c1_bar_c[i,j][p,q]
+					#print c2_bar_c[i,j][p,q]
+					tempmu1[0,0] = c1_2_bar_c[i,j][p,q] - (c1_bar_c[i,j][p,q] ** 2.0)
+					tempmu1[0,1] = c1c2_bar_c[i,j][p,q] - (c1_bar_c[i,j][p,q] * c2_bar_c[i,j][p,q])
+					tempmu1[1,0] = c1c2_bar_c[i,j][p,q] - (c1_bar_c[i,j][p,q] * c2_bar_c[i,j][p,q])
+					tempmu1[1,1] = c2_2_bar_c[i,j][p,q] - (c2_bar_c[i,j][p,q] ** 2.0)
+
+					tempmu2[0,0] = c1_2_bar_s[i,j][p,q] - (c1_bar_s[i,j][p,q] ** 2.0)
+					tempmu2[0,1] = c1c2_bar_s[i,j][p,q] - (c1_bar_s[i,j][p,q] * c2_bar_s[i,j][p,q])
+					tempmu2[1,0] = c1c2_bar_s[i,j][p,q] - (c1_bar_s[i,j][p,q] * c2_bar_s[i,j][p,q])
+					tempmu2[1,1] = c2_2_bar_s[i,j][p,q] - (c2_bar_s[i,j][p,q] ** 2.0)
+
+					temparr1[p,q] = tempmu1
+					temparr2[p,q] = tempmu2
+
+			sig_c_col[i,j] = temparr1
+			sig_s_col[i,j] = temparr2
+
+	print sig_c_col.shape
+	print sig_c_col[0,0].shape
+	print sig_c_col[0,0][0,0]
+
+	return mu_c_col, sig_c_col, mu_s_col, sig_s_col
 
 
-	
+
+
+
 
 def normalize(arr):
     for i in range(3):
@@ -513,6 +661,43 @@ def combineScales(imglist):
 if __name__ == '__main__':
 	image = readConvert('../testimages/dscn4311.jpg')
 	OSMatrix = scaleSpaceRepresentation(image, scales = 3, octaves = 2)
-	mu_c_int, sig_c_int, mu_s_int, sig_s_int = SSCS_Dist_Intensity(OSMatrix, 1.0, 10.0)
-	print mu_c_int[0,0][0,0], sig_c_int[0,0][0,0]
-	plot1DND(mu_c_int[0,0][0,1], sig_c_int[0,0][0,1])
+	mu_c_int, sig_c_int, mu_s_int, sig_s_int = SSCS_Dist_Color(OSMatrix, 1.0, 10.0)
+	#print mu_c_int[0,0][0,0], sig_c_int[0,0][0,0]
+	#plot1DND(mu_c_int[0,0][0,1], sig_c_int[0,0][0,1])
+	cov1 = np.array([[1, 0.7],[0.7, 1]]) * 0.02
+	mean1 = np.array([1,2]) /4.
+	cov2 = np.array([[1, -0.3],[-0.3, 1]]) * 0.02
+	mean2 = np.array([2,1]) /4.
+	cov3 = np.array([[1, 0],[0, 0.5]]) * 0.02
+	mean3 = np.array([2,2]) *2. /4.
+
+	nobs = 1000
+	rvs1 = np.random.multivariate_normal(mean1, cov1, size=nobs)
+	rvs2 = np.random.multivariate_normal(mean2, cov2, size=nobs)
+	rvs3 = np.random.multivariate_normal(mean3, cov3, size=nobs)
+	
+
+	bvn = BVN()
+	bvn.covars = [cov1, cov2, cov3]
+	bvn.mean = np.vstack([mean1, mean2, mean3])
+
+
+
+	fig = plt.figure()
+	#plt.plot(*rvs1.T, ls='.', color='r', alpha=0.25)
+	#plt.plot(*rvs2.T, ls='.', color='g', alpha=0.25)
+	#plt.plot(*rvs3.T, ls='.', color='b', alpha=0.25)
+	level = 0.9
+	# for rvs, c in zip([rvs1, rvs2, rvs3], 'rgb'):
+	#     plt.plot(*rvs.T, ls='none', marker='.', color=c)#, alpha=0.25)
+	# ax = plt.gca()
+	# make_ellipses(bvn, ax, level=level)
+
+	e1, e2 = gauss_ell(mean1, cov1, dim = [0, 1], npoints = 200, level =level)
+	plt.plot(e1, e2, 'r')
+	#e1, e2 = gauss_ell(mean2, cov2, dim = [0, 1], npoints = 200, level = level)
+	#plt.plot(e1, e2, 'r')
+	#e1, e2 = gauss_ell(mean3, np.diag(cov3), dim = [0, 1], npoints = 200, 
+	                  # level = level)
+	#plt.plot(e1, e2, 'r')
+	plt.show()
