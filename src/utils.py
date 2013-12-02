@@ -126,7 +126,8 @@ def scaleSpaceRepresentation(image, scales, octaves):
 
 	#Oct = []
 	Oct = np.empty((octaves + 1, scales + 1), dtype = 'object')
-	print Oct
+	
+	#print Oct
 	Oct[0,0] = image
 	tempimg = []
 	for i in range(octaves+1):
@@ -163,7 +164,7 @@ def scaleSpaceRepresentation(image, scales, octaves):
 	# plotImg(Oct[2,2])
 	# plotImg(Oct[2,3])
 
-	print Oct[1:,:-1].shape
+	# print Oct[1:,:-1].shape
 	return Oct[1:,:-1]
 
 
@@ -206,7 +207,10 @@ def SS_supp_Color(OSMatrix):
 			c2[i,j] = OSMatrix[i,j][:,:,2]
 			c1_2[i,j] = c1[i,j] ** 2.0 
 			c2_2[i,j] = c2[i,j] ** 2.0
-			c1c2[i,j] = np.multiply(c1[i,j], c2[i,j])
+			c1c2[i,j] = c1[i,j] * c2[i,j]
+			#print c1c2[i,j].shape
+
+	#plotImg(c1[0,0])
 
 	return c1,c2,c1_2,c2_2,c1c2
 
@@ -311,20 +315,29 @@ def SSCS_Dist_Color(OSMatrix, sizeIn, sizeOut):
 
 			c1c2_bar_c[i,j] = csEstimate(c1c2[i,j], sizeIn)
 			c1c2_bar_s[i,j] = csEstimate(c1c2[i,j], sizeOut)
+	# plotImg(c1_bar_c[0,0])
+	# plotImg(c1_bar_c[0,1])
+	# plotImg(c1_bar_c[1,0])
+	# plotImg(c1_bar_c[1,1])
+
+	print c1_bar_c[0,0]
+	print c1_bar_c[0,1]
 
 	# create mu for center and surround
 
+
 	for i in range(OSMatrix.shape[0]):
 		for j in range(OSMatrix.shape[1]):
-			tempmu1 = np.zeros((2,1))
-			tempmu2 = np.zeros((2,1))
 			temparr1 = np.empty((c1[i,j].shape), dtype = 'object')
 			temparr2 = np.empty((c1[i,j].shape), dtype = 'object')
 
 			for p in range(c1[i,j].shape[0]):
 				for q in range(c2[i,j].shape[1]):
 					#print c1_bar_c[i,j][p,q]
-					#print c2_bar_c[i,j][p,q]
+					#print c1_bar_c[i,j][p,q],c2_bar_c[i,j][p,q]
+					tempmu1 = np.zeros((2,1))
+					tempmu2 = np.zeros((2,1))
+					
 					tempmu1[0,0] = c1_bar_c[i,j][p,q]
 					tempmu1[1,0] = c2_bar_c[i,j][p,q]
 					tempmu2[0,0] = c1_bar_s[i,j][p,q]
@@ -332,16 +345,17 @@ def SSCS_Dist_Color(OSMatrix, sizeIn, sizeOut):
 
 					temparr1[p,q] = tempmu1
 					temparr2[p,q] = tempmu2
+					#print tempmu1, tempmu2
 
 			mu_c_col[i,j] = temparr1
 			mu_s_col[i,j] = temparr2
+			#print mu_c_col[i,j]
 
 	# create sigma for center and surround
 
+
 	for i in range(OSMatrix.shape[0]):
 		for j in range(OSMatrix.shape[1]):
-			tempmu1 = np.zeros((2,2))
-			tempmu2 = np.zeros((2,2))
 			temparr1 = np.empty((c1[i,j].shape), dtype = 'object')
 			temparr2 = np.empty((c1[i,j].shape), dtype = 'object')
 
@@ -349,6 +363,9 @@ def SSCS_Dist_Color(OSMatrix, sizeIn, sizeOut):
 				for q in range(c2[i,j].shape[1]):
 					#print c1_bar_c[i,j][p,q]
 					#print c2_bar_c[i,j][p,q]
+					tempmu1 = np.zeros((2,2))
+					tempmu2 = np.zeros((2,2))
+					
 					tempmu1[0,0] = c1_2_bar_c[i,j][p,q] - (c1_bar_c[i,j][p,q] ** 2.0)
 					tempmu1[0,1] = c1c2_bar_c[i,j][p,q] - (c1_bar_c[i,j][p,q] * c2_bar_c[i,j][p,q])
 					tempmu1[1,0] = c1c2_bar_c[i,j][p,q] - (c1_bar_c[i,j][p,q] * c2_bar_c[i,j][p,q])
@@ -365,9 +382,9 @@ def SSCS_Dist_Color(OSMatrix, sizeIn, sizeOut):
 			sig_c_col[i,j] = temparr1
 			sig_s_col[i,j] = temparr2
 
-	print sig_c_col.shape
-	print sig_c_col[0,0].shape
-	print sig_c_col[0,0][0,0]
+	#print sig_c_col.shape
+	#print sig_c_col[0,0].shape
+	#print sig_c_col[0,0][0,0]
 
 	return mu_c_col, sig_c_col, mu_s_col, sig_s_col
 
@@ -581,6 +598,28 @@ def csNDColor(image):
 	return cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma
 
 
+def SScomputeCSWassersteinIntensity(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma):
+	
+	WInt = np.empty((cND_Int_mu.shape), dtype = 'object')
+	for i in range(cND_Int_mu.shape[0]):
+		for j in range(cND_Int_mu.shape[1]):
+			tempimg = np.zeros((cND_Int_mu[i,j].shape))
+			for p in range(cND_Int_mu[i,j].shape[0]):
+				for q in range(cND_Int_mu[i,j].shape[1]):
+					t1 = np.linalg.norm(cND_Int_mu[i,j][p,q]-sND_Int_mu[i,j][p,q])
+					t1 = t1 * t1
+					t2 = sND_Int_sigma[i,j][p,q] + cND_Int_sigma[i,j][p,q] 
+					t3 = 2.0 * np.sqrt(np.sqrt(cND_Int_sigma[i,j][p,q]) * sND_Int_sigma[i,j][p,q] * np.sqrt(cND_Int_sigma[i,j][p,q]))
+					if (t1 + t2 - t3) < 0:
+						tempimg[p,q] = 0.0
+					else:
+						tempimg[p,q] = np.sqrt(t1 + t2 - t3)
+
+			WInt[i,j] = tempimg
+
+	return WInt
+
+
 def computeCSWassersteinIntensity(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma):
 	WInt = []
 
@@ -624,6 +663,47 @@ def matmult (A, B):
             for k in range(cols_A):
                 C[i][j] += A[i][k]*B[k][j]
     return C
+
+
+def SScomputeCSWassersteinColor(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma):
+	WInt = np.empty((cND_Int_mu.shape), dtype = 'object')
+	#print (cND_Int_mu[0].shape), (cND_Int_sigma[0].shape), (sND_Int_mu[0].shape), (sND_Int_sigma[0].shape)
+	for i in range(cND_Int_mu.shape[0]):
+		for j in range(cND_Int_mu.shape[1]):
+			print i
+			#print "shapeeeeeee", cND_Int_mu[0][0].shape
+			tempimg = np.zeros((cND_Int_mu[i,j].shape))
+			for p in range(cND_Int_mu[i,j].shape[0]):
+				for q in range(cND_Int_mu[i,j].shape[1]):
+					#print (i,j,k)
+					#print cND_Int_mu[i,j][p,q].shape
+					#print cND_Int_mu[i,j][p,q], sND_Int_mu[i,j][p,q]
+					t1 = np.linalg.norm(cND_Int_mu[i,j][p,q]-sND_Int_mu[i,j][p,q])
+
+					#print t1
+					t1 = t1 ** 2.0
+					#print t1
+					t2 = np.trace(sND_Int_sigma[i,j][p,q]) + np.trace(cND_Int_sigma[i,j][p,q]) 
+					p1 = np.trace(np.dot(cND_Int_sigma[i,j][p,q], sND_Int_sigma[i,j][p,q]))
+					p2 =  (((np.linalg.det(np.dot(cND_Int_sigma[i,j][p,q], sND_Int_sigma[i,j][p,q])))))
+					if p2 < 0.0:
+						p2 = 0.0
+					p2 = np.sqrt(p2)
+					tt = p1 + 2.0*p2
+					if tt < 0.0:
+						tt = 0.0
+					t3 = 2.0 * np.sqrt(tt)
+					#print t3
+					if (t1 + t2 - t3) < 0:
+						tempimg[p,q] = 0.0
+						#print "here"
+					else:
+						tempimg[p,q] = np.sqrt(t1 + t2 - t3)
+					#print tempimg[j,k]
+
+			WInt[i,j] = tempimg
+	return WInt
+
 
 def computeCSWassersteinColor(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma):
 	WInt = []
@@ -675,6 +755,23 @@ if __name__ == '__main__':
 	image = readConvert('../testimages/dscn4311.jpg')
 	OSMatrix = scaleSpaceRepresentation(image, scales = 3, octaves = 2)
 	mu_c_int, sig_c_int, mu_s_int, sig_s_int = SSCS_Dist_Color(OSMatrix, 1.0, 10.0)
+
+	print (mu_c_int[0,0][1,1], mu_s_int[0,0][1,1])
+	print (mu_c_int[0,0][2,2], mu_s_int[0,0][2,2])
+
+	WInt = SScomputeCSWassersteinColor(mu_c_int, sig_c_int, mu_s_int, sig_s_int)
+	print WInt.shape
+	print WInt[0,0] 
+
+	print WInt[0,1]
+
+	plotImg(WInt[0,0])
+	plotImg(WInt[0,1])
+	plotImg(WInt[0,2])
+	plotImg(WInt[1,0])
+	plotImg(WInt[1,1])
+	plotImg(WInt[1,2])
 	#print mu_c_int[0,0][0,0], sig_c_int[0,0][0,0]
-	plot2DND(mu_c_int[0,0][0,1], sig_c_int[0,0][0,1])
+	
+	#plot1DND(mu_c_int[0,0][0,1], sig_c_int[0,0][0,1])
 	
