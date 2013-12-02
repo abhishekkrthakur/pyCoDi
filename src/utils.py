@@ -165,7 +165,7 @@ def scaleSpaceRepresentation(image, scales, octaves):
 	# plotImg(Oct[2,3])
 
 	# print Oct[1:,:-1].shape
-	return Oct[1:,:-1]
+	return Oct#[1:,:-1]
 
 
 def SS_supp_Intensity(OSMatrix):
@@ -734,6 +734,31 @@ def computeCSWassersteinColor(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sig
 
 
 	return WInt
+def SScombineScales(WInt):
+
+
+	origshape1 = WInt[0,0].shape[1]
+	origshape0 = WInt[0,0].shape[0]
+	origshape = WInt[0,0].shape
+
+	for i in range(WInt.shape[0]):
+		for j in range(WInt.shape[1]):
+			temp = WInt[i,j]
+			if temp.shape == origshape:
+				continue
+			else:
+				WInt[i,j] = cv2.resize(WInt[i,j], (origshape1, origshape0), interpolation=cv2.INTER_CUBIC)
+
+	tempimg = np.zeros((origshape))
+	for i in range(WInt.shape[0]):
+		for j in range(WInt.shape[1]):
+			tempimg += WInt[i,j]
+
+	tempimg = tempimg/(origshape0 * origshape1)
+
+	return tempimg 
+
+
 
 def combineScales(imglist):
 	s = len(imglist)
@@ -752,25 +777,22 @@ def combineScales(imglist):
 	return img
 
 if __name__ == '__main__':
-	image = readConvert('../testimages/dscn4311.jpg')
-	OSMatrix = scaleSpaceRepresentation(image, scales = 3, octaves = 2)
+	image = readConvert('/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/results/orig/0_3_3327.jpg')
+	OSMatrix = scaleSpaceRepresentation(image, scales = 2, octaves = 5)
 	mu_c_int, sig_c_int, mu_s_int, sig_s_int = SSCS_Dist_Color(OSMatrix, 1.0, 10.0)
 
 	print (mu_c_int[0,0][1,1], mu_s_int[0,0][1,1])
 	print (mu_c_int[0,0][2,2], mu_s_int[0,0][2,2])
 
 	WInt = SScomputeCSWassersteinColor(mu_c_int, sig_c_int, mu_s_int, sig_s_int)
-	print WInt.shape
-	print WInt[0,0] 
+	
 
-	print WInt[0,1]
-
-	plotImg(WInt[0,0])
-	plotImg(WInt[0,1])
-	plotImg(WInt[0,2])
-	plotImg(WInt[1,0])
-	plotImg(WInt[1,1])
-	plotImg(WInt[1,2])
+	plotImg(SScombineScales(WInt))
+	# plotImg(WInt[0,1])
+	# plotImg(WInt[0,2])
+	# plotImg(WInt[1,0])
+	# plotImg(WInt[1,1])
+	# plotImg(WInt[1,2])
 	#print mu_c_int[0,0][0,0], sig_c_int[0,0][0,0]
 	
 	#plot1DND(mu_c_int[0,0][0,1], sig_c_int[0,0][0,1])
