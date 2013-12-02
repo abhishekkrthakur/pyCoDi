@@ -10,6 +10,9 @@ from skimage.transform.pyramids import pyramid_laplacian
 import sys
 import Image
 import os
+import matplotlib.pyplot as plt
+import matplotlib.mlab as mlab
+
 
 def savePlot(data, filename):
 #Rescale to 0-255 and convert to uint8
@@ -17,7 +20,7 @@ def savePlot(data, filename):
 	head, tail = os.path.split(filename)
 	rescaled = (255.0 / data.max() * (data - data.min())).astype(np.uint8)
 	im = Image.fromarray(rescaled)
-	im.save(head + '/' + base + '_saliency.png')
+	im.save(head + '/' + base + '.png')
 
 
 def plotImg(data):
@@ -28,9 +31,80 @@ def plotImg(data):
 	#pl.tight_layout() 
 	#pl.show()
 
+def scaleSpaceRepresentation(image, scales, octaves):
+	"""
+	Returns a Octvave-Scale matrix
+	Input: 3-Channel Image, number of scales, number of octaves
+	Output: A matrix which contains all images for octaves and scales
+			except the original image and original scales
+	"""
 
-import matplotlib.pyplot as plt
-import matplotlib.mlab as mlab
+	#Oct = []
+	Oct = np.empty((octaves + 1, scales + 1), dtype = 'object')
+	print Oct
+	Oct[0,0] = image
+	tempimg = []
+	for i in range(octaves+1):
+		print i
+		if i == 0: 
+			tempimg = Oct[0,0]
+		else:
+			newimg = Oct[i-1,-1]
+			Oct[i,0] = newimg[::2, ::2]
+
+		for j in range(scales):
+			#tempimg = Oct[i,0]
+			#print Oct[i, j]
+			gau_sigma = 2.0 ** ((j+1)/scales)
+			ks = int(math.ceil(3*gau_sigma))
+			if ks%2 == 0:
+				ks += 1
+			ksize = (ks,ks)
+			Oct[i, j+1] = smoothImg(Oct[i,j], sigmaX = gau_sigma, sigmaY = gau_sigma, ksize  = ksize)
+			
+			#tempimg = Oct[i, j+1]
+
+	#print Oct[2,0]
+	plotImg(Oct[0,0][:,:,0])
+	plotImg(Oct[0,1])
+	plotImg(Oct[0,2])
+	plotImg(Oct[0,3])
+	plotImg(Oct[1,0])
+	plotImg(Oct[1,1])
+	plotImg(Oct[1,2])
+	plotImg(Oct[1,3])
+	plotImg(Oct[2,0])
+	plotImg(Oct[2,1])
+	plotImg(Oct[2,2])
+	plotImg(Oct[2,3])
+
+	print Oct[1:,:-1].shape
+	return Oct[1:,:-1]
+
+
+def SSCS_supp_Intensity(OSMatrix):
+	"""
+	
+	Create supplimenting layers for the intensity channel.
+	Input: Octvave-Scale matrix
+	Output: i, i^2 Matrices in the same format as the OSMatrix
+
+	"""
+	supInt1 = np.empty((OSMatrix.shape), dtype = 'object')
+	supInt2 = np.empty((OSMatrix.shape), dtype = 'object')
+
+	for i in range(OSMatrix.shape[0]):
+		for j in range(OSMatrix.shape[1]):
+			supInt1[i,j] = OSMatrix[i,j][:,:,0] 			# Taking only the intensity channel
+			supInt2[i,j] = OSMatrix[i,j][:,:,0]**2.0 		# Take the square of all elements of the intensity channel
+
+	return supInt1, supInt2
+
+
+def SSCS_Dist_Intensity(OSMatrix):
+
+
+
 
 def normalize(arr):
     for i in range(3):
@@ -52,9 +126,11 @@ def csNDIntensity(image):
 	print "convert colorspace..."
 	l1 = convertColorspace(image) 
 
+	#print l1
 	print "create DOG pyramid..."
-	L,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=1.5,sigmaY=1.5,ksize=(7,7))
+	L,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=10.5,sigmaY=10.5,ksize=(31,31))
 
+	print L
 
 	print "create supplimenting layers for intensity..."
 	iSup = []
@@ -63,7 +139,7 @@ def csNDIntensity(image):
 		iSup.append(intensitySup)
 
 
-	print len(iSup)
+	# print (iSup)
 
 	# plotImg(iSup[1][1])
 	icSup = copy.deepcopy(iSup)
@@ -74,7 +150,7 @@ def csNDIntensity(image):
 		for j in range(len(iSup[i])):
 			icSup[i][j] = csEstimate(iSup[i][j], 1.0)
 
-	#print icSup[0][0][0,0], iSup[0][0][0,0], isSup[0][0][0,0]
+	#print icSup[0][0]#, iSup[0][0][0,0], isSup[0][0][0,0]
 
 	#print iSup[0][0].shape
 	print "center normal distribution for all intensity layers..."	
@@ -116,7 +192,7 @@ def csNDColor(image):
 	l1 = convertColorspace(image) 
 
 	print "create DOG pyramid..."
-	L,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=1.5,sigmaY=1.5,ksize=(7,7))
+	L,c1,c2 = getDOGPyramid(l1, level=5, sigmaX=10.5,sigmaY=10.5,ksize=(31,31))
 
 
 	print "create supplimenting layers for intensity..."
@@ -280,29 +356,9 @@ def computeCSWassersteinColor(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sig
 				t1 = t1 ** 2.0
 				#print t1
 				t2 = np.trace(sND_Int_sigma[i][j,k]) + np.trace(cND_Int_sigma[i][j,k]) 
-				#print t2
-				#print (cND_Int_sigma[i][j,k])
-				#t3 = sqrtm(np.dot(sqrtm(cND_Int_sigma[i][j,k]), sND_Int_sigma[i][j,k]), sqrtm(cND_Int_sigma[i][j,k])))
-				#t3 = np.sqrt(np.trace(np.multiply(cND_Int_sigma[i][j,k], sND_Int_sigma[i][j,k])) + 2.0 * np.sqrt(np.linalg.det(np.multiply(cND_Int_sigma[i][j,k], sND_Int_sigma[i][j,k]))))
-				#print cND_Int_sigma[i][j,k].shape, sND_Int_sigma[i][j,k].shape
 				p1 = np.trace(np.dot(cND_Int_sigma[i][j,k], sND_Int_sigma[i][j,k]))
-				#if p1 == np.nan:
-				#	print "NAN"
-				#try:
-				#print ((np.linalg.det(np.dot(cND_Int_sigma[i][j,k], sND_Int_sigma[i][j,k]))))
 				p2 =  np.sqrt(abs((np.linalg.det(np.dot(cND_Int_sigma[i][j,k], sND_Int_sigma[i][j,k])))))
-				#except:
-				#	p2 = 0.0
-
-
-				
-				#print p1, p2
-
 				t3 = 2.0 * np.sqrt(p1 + 2.0*p2)
-				#print t1,t2,t3
-				#t3 = np.sqrt(np.dot ( (np.dot(sqrtm(cND_Int_sigma[i][j,k]),sND_Int_sigma[i][j,k])), sqrtm(cND_Int_sigma[i][j,k])) )
-				#t3 = np.nan_to_num(t3)
-				#t3 = 2.0 * np.trace(t3)
 				#print t3
 				if (t1 + t2 - t3) < 0:
 					tempimg[j,k] = 0.0
@@ -330,3 +386,7 @@ def combineScales(imglist):
 
 	img = img/s
 	return img
+
+if __name__ == '__main__':
+	image = readConvert('../testimages/dscn4311.jpg')
+	scaleSpaceRepresentation(image, scales = 3, octaves = 2)

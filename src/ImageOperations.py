@@ -78,9 +78,9 @@ def getDOGPyramid(image, level, sigmaX=1.5,sigmaY=1.0,ksize=(5,5)):
 	lvl = level
 
 	for i in range(lvl):
-		intList.append(np.asarray(createLaplacianPyramid(image[:,:,0], sigmaX=sigmaX, sigmaY=sigmaY, ksize=ksize, level = i)))
-		c1List.append(np.asarray(createLaplacianPyramid(image[:,:,1], sigmaX=sigmaX, sigmaY=sigmaY, ksize=ksize, level = i)))
-		c2List.append(np.asarray(createLaplacianPyramid(image[:,:,2], sigmaX=sigmaX, sigmaY=sigmaY, ksize=ksize, level = i)))
+		intList.append(np.asarray(createGaussianPyramid(image[:,:,0], sigmaX=sigmaX, sigmaY=sigmaY, ksize=ksize, level = i)))
+		c1List.append(np.asarray(createGaussianPyramid(image[:,:,1], sigmaX=sigmaX, sigmaY=sigmaY, ksize=ksize, level = i)))
+		c2List.append(np.asarray(createGaussianPyramid(image[:,:,2], sigmaX=sigmaX, sigmaY=sigmaY, ksize=ksize, level = i)))
 
 	return intList, c1List, c2List
 
@@ -168,7 +168,7 @@ def readImg(filename):
 	Read image using the opencv imread function and return result as a 
 	numpy array which is RGB and not BGR
 	"""
-	img = cv2.imread(filename)
+	img = cv2.imread(filename,cv2.CV_LOAD_IMAGE_COLOR)
 	image = np.zeros((img.shape)) 
 	image[:,:,0] = img[:,:,2]
 	image[:,:,1] = img[:,:,1]
@@ -261,6 +261,7 @@ def csEstimate(image, std):
 		ks += 1
 	#print ks
 	ksize = (ks,ks)
+	#print image
 	return smoothImg(image, std, std, ksize)
 
 
