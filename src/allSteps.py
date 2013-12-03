@@ -14,6 +14,7 @@ from utils import *
 from ssUtils import *
 import pygame, sys
 from PIL import Image
+import cPickle
 pygame.init()
 
 def displayImage( screen, px, topleft):
@@ -65,6 +66,9 @@ if __name__ == '__main__':
 
 	print "creating OSMatrix"
 	OSMatrix = scaleSpaceRepresentation(image, scales = 3, octaves = 3)
+
+	cPickle.dump(OSMatrix, open('../OSMatrix_SCHREIBTISCH_DUNKEL2_0011_Scales_3___Octaves_3.pkl', 'wb'), -1)
+	print "pickle dumped"
 
 	print "processing for intensity channel"
 	mu_c_int, sig_c_int, mu_s_int, sig_s_int = SSCS_Dist_Intensity(OSMatrix, 1.0, 10.0)

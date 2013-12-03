@@ -885,7 +885,7 @@ def computeW2CentroidDiffInt(centroids, OSMatrixTestmu, OSMatrixTestsigma ):
 					for p in range(lencent):
 						dist.append(w2distance1D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
 					#print dist
-					val = np.exp(-np.min(dist))# - np.min(dist)
+					val = 1./(1. + np.exp(-np.min(dist)))# - np.min(dist)
 					#print val
 					tempimg[r,s] = val
 			tempmat[i,j] = tempimg
@@ -909,7 +909,7 @@ def computeW2CentroidDiffCol(centroids, OSMatrixTestmu, OSMatrixTestsigma ):
 					for p in range(lencent):
 						dist.append(w2distance2D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
 					#print dist
-					val = np.exp(-np.min(dist))
+					val = 1./(1. + np.exp(-np.min(dist)))
 					#print val
 					tempimg[r,s] = val
 			tempmat[i,j] = tempimg
