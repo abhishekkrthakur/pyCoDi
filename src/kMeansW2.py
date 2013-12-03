@@ -36,6 +36,14 @@ from scipy import stats
 from ssUtils import *
 from scipy.sparse import issparse
 from scipy.spatial.distance import cdist
+from scipy.cluster.vq import vq
+import numpy as np
+from ImageOperations import *
+import pylab as pl
+import copy
+import matplotlib.cm as cm
+from pylab import plot,show
+
 
 def distanceFunction2D(X,Y):
 	return w2distance2D(X[0], Y[0], X[1], Y[1])
@@ -52,7 +60,7 @@ def distanceFunction1D(X,Y):
 
 
 
-def kmeans( X, centres, delta=.001, maxiter=10, metric="euclidean", p=2, verbose=0 ):
+def kmeans( X, centres, delta=.001, maxiter=10, p=2, verbose=0 ):
     """ centres, Xtocentre, distances = kmeans( X, initial centres ... )
     in:
         X N x dim  may be sparse
@@ -82,13 +90,13 @@ def kmeans( X, centres, delta=.001, maxiter=10, metric="euclidean", p=2, verbose
         raise ValueError( "kmeans: X %s and centres %s must have the same number of columns" % (
             X.shape, centres.shape ))
     if verbose:
-        print "kmeans: X %s  centres %s  delta=%.2g  maxiter=%d  metric=%s" % (
-            X.shape, centres.shape, delta, maxiter, metric)
+        print "kmeans: X %s  centres %s  delta=%.2g  maxiter=%d  " % (
+            X.shape, centres.shape, delta, maxiter)
     allx = np.arange(N)
     prevdist = 0
     for jiter in range( 1, maxiter+1 ):
         D = distanceFunction1D(X, centres) #cdist_sparse( X, centres, metric=metric, p=p )
-        print D.shape, X.shape, centres.shape  # |X| x |centres|
+        #print D.shape, X.shape, centres.shape  # |X| x |centres|
         xtoc = D.argmin(axis=1)  # X -> nearest centre
         distances = D[allx,xtoc]
         avdist = distances.mean()  # median ?
@@ -166,12 +174,12 @@ def randomsample( X, n ):
     sampleix = random.sample( xrange( X.shape[0] ), int(n) )
     return X[sampleix]
 
-def nearestcentres( X, centres, metric="euclidean", p=2 ):
+def nearestcentres( X, centres, p=2 ):
     """ each X -> nearest centre, any metric
             euclidean2 (~ withinss) is more sensitive to outliers,
             cityblock (manhattan, L1) less sensitive
     """
-    D = cdist( X, centres, metric=metric, p=p )  # |X| x |centres|
+    D = cdist( X, centres, p=p )  # |X| x |centres|
     return D.argmin(axis=1)
 
 def Lqmetric( x, y=None, q=.5 ):
@@ -205,34 +213,74 @@ class Kmeans:
 
 
 if __name__ == "__main__":
-    import random
-    import sys
-    from time import time
+	import random
+	import sys
+	from time import time
 
-    N = 10000
-    dim = 2
-    ncluster = 10
-    kmsample = 100  # 0: random centres, > 0: kmeanssample
-    kmdelta = .001
-    kmiter = 10
-    metric = "cityblock"  # "chebyshev" = max, "cityblock" L1,  Lqmetric
-    seed = 1
 
-    exec( "\n".join( sys.argv[1:] ))  # run this.py N= ...
-    np.set_printoptions( 1, threshold=200, edgeitems=5, suppress=True )
-    np.random.seed(seed)
-    random.seed(seed)
+	print "load image..."
+	image = readConvert('/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/crop.jpg')
+	OSMatrix = scaleSpaceRepresentation(image, scales = 2, octaves = 5)
+	mu_c_int, sig_c_int, mu_s_int, sig_s_int = SSCS_Dist_Intensity(OSMatrix, 1.0, 10.0)
+	#WInt1 = SScomputeCSWassersteinIntensity(mu_c_int, sig_c_int, mu_s_int, sig_s_int)
 
-    print "N %d  dim %d  ncluster %d  kmsample %d  metric %s" % (
-        N, dim, ncluster, kmsample, metric)
-    X = np.random.exponential( size=(N,dim) )
-        # cf scikits-learn datasets/
-    t0 = time()
-    if kmsample > 0:
-        centres, xtoc, dist = kmeanssample( X, ncluster, nsample=kmsample,
-            delta=kmdelta, maxiter=kmiter, metric=metric, verbose=2 )
-    else:
-        randomcentres = randomsample( X, ncluster )
-        centres, xtoc, dist = kmeans( X, randomcentres,
-            delta=kmdelta, maxiter=kmiter, metric=metric, verbose=2 )
-    print "%.0f msec" % ((time() - t0) * 1000)
+	#print cND_Int_mu
+	mu_sigma = np.asarray(zip(mu_c_int[0,0].ravel(), sig_c_int[0,0].ravel())) #splitcenterdata(cND_Int_mu, cND_Int_sigma)
+	data = mu_sigma
+
+	X = data
+	ncluster = 5
+	kmdelta = .001
+	kmiter = 100
+
+	randomcentres = randomsample( X, ncluster )
+
+
+	centres, xtoc, dist = kmeans( X, randomcentres,
+		delta=kmdelta, maxiter=kmiter, verbose=2)
+
+
+	print centres
+
+	print xtoc
+
+	idx,_ = vq(data,centres)
+
+	centroids = centres
+
+	plot(data[idx==0,0],data[idx==0,1],'ob',
+	     data[idx==1,0],data[idx==1,1],'or',
+	     data[idx==2,0],data[idx==2,1],'og',
+	     data[idx==3,0],data[idx==3,1],'oy',
+	     data[idx==4,0],data[idx==4,1],'oc')
+
+	plot(centroids[:,0],centroids[:,1],'sg',markersize=8)
+	show()
+
+    # N = 10000
+    # dim = 2
+    # ncluster = 10
+    # kmsample = 100  # 0: random centres, > 0: kmeanssample
+    # kmdelta = .001
+    # kmiter = 10
+    # metric = "cityblock"  # "chebyshev" = max, "cityblock" L1,  Lqmetric
+    # seed = 1
+
+    # exec( "\n".join( sys.argv[1:] ))  # run this.py N= ...
+    # np.set_printoptions( 1, threshold=200, edgeitems=5, suppress=True )
+    # np.random.seed(seed)
+    # random.seed(seed)
+
+    # print "N %d  dim %d  ncluster %d  kmsample %d  metric %s" % (
+    #     N, dim, ncluster, kmsample, metric)
+    # X = np.random.exponential( size=(N,dim) )
+    #     # cf scikits-learn datasets/
+    # t0 = time()
+    # if kmsample > 0:
+    #     centres, xtoc, dist = kmeanssample( X, ncluster, nsample=kmsample,
+    #         delta=kmdelta, maxiter=kmiter, metric=metric, verbose=2 )
+    # else:
+    #     randomcentres = randomsample( X, ncluster )
+    #     centres, xtoc, dist = kmeans( X, randomcentres,
+    #         delta=kmdelta, maxiter=kmiter, metric=metric, verbose=2 )
+    # print "%.0f msec" % ((time() - t0) * 1000)
