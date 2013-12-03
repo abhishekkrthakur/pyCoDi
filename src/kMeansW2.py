@@ -42,6 +42,9 @@ from ImageOperations import *
 import pylab as pl
 import copy
 import matplotlib.cm as cm
+import random
+import sys
+from time import time
 from pylab import plot,show
 
 
@@ -60,8 +63,8 @@ def distanceFunction1D(X,Y):
 
 
 
-def kmeans( X, centres, delta=.001, maxiter=10, p=2, verbose=0 ):
-    """ centres, Xtocentre, distances = kmeans( X, initial centres ... )
+def kmeans1D( X, centres, delta=.001, maxiter=10, p=2, verbose=0 ):
+    """ centres, Xtocentre, distances = kmeans1D( X, initial centres ... )
     in:
         X N x dim  may be sparse
         centres k x dim: initial centres, e.g. random.sample( X, k )
@@ -77,7 +80,7 @@ def kmeans( X, centres, delta=.001, maxiter=10, p=2, verbose=0 ):
         centres, k x dim
         Xtocentre: each X -> its nearest centre, ints N -> k
         distances, N
-    see also: kmeanssample below, class Kmeans below.
+    see also: kmeans1Dsample below, class Kmeans below.
     """
     if not issparse(X):
         X = np.asanyarray(X)  # ?
@@ -87,10 +90,10 @@ def kmeans( X, centres, delta=.001, maxiter=10, p=2, verbose=0 ):
     k, cdim = centres.shape
     print X.shape
     if dim != cdim:
-        raise ValueError( "kmeans: X %s and centres %s must have the same number of columns" % (
+        raise ValueError( "kmeans1D: X %s and centres %s must have the same number of columns" % (
             X.shape, centres.shape ))
     if verbose:
-        print "kmeans: X %s  centres %s  delta=%.2g  maxiter=%d  " % (
+        print "kmeans1D: X %s  centres %s  delta=%.2g  maxiter=%d  " % (
             X.shape, centres.shape, delta, maxiter)
     allx = np.arange(N)
     prevdist = 0
@@ -101,7 +104,7 @@ def kmeans( X, centres, delta=.001, maxiter=10, p=2, verbose=0 ):
         distances = D[allx,xtoc]
         avdist = distances.mean()  # median ?
         if verbose >= 2:
-            print "kmeans: av |X - nearest centre| = %.4g" % avdist
+            print "kmeans1D: av |X - nearest centre| = %.4g" % avdist
         if (1 - delta) * prevdist <= avdist <= prevdist \
         or jiter == maxiter:
             break
@@ -111,7 +114,7 @@ def kmeans( X, centres, delta=.001, maxiter=10, p=2, verbose=0 ):
             if len(c) > 0:
                 centres[jc] = X[c].mean( axis=0 )
     if verbose:
-        print "kmeans: %d iterations  cluster sizes:" % jiter, np.bincount(xtoc)
+        print "kmeans1D: %d iterations  cluster sizes:" % jiter, np.bincount(xtoc)
     if verbose >= 2:
         r50 = np.zeros(k)
         r90 = np.zeros(k)
@@ -119,17 +122,17 @@ def kmeans( X, centres, delta=.001, maxiter=10, p=2, verbose=0 ):
             dist = distances[ xtoc == j ]
             if len(dist) > 0:
                 r50[j], r90[j] = np.percentile( dist, (50, 90) )
-        print "kmeans: cluster 50 % radius", r50.astype(int)
-        print "kmeans: cluster 90 % radius", r90.astype(int)
+        print "kmeans1D: cluster 50 % radius", r50.astype(int)
+        print "kmeans1D: cluster 90 % radius", r90.astype(int)
             # scale L1 / dim, L2 / sqrt(dim) ?
     return centres, xtoc, distances
 
-def kmeanssample( X, k, nsample=0, **kwargs ):
-    """ 2-pass kmeans, fast for large N:
-        1) kmeans a random sample of nsample ~ sqrt(N) from X
-        2) full kmeans, starting from those centres
+def kmeans1Dsample( X, k, nsample=0, **kwargs ):
+    """ 2-pass kmeans1D, fast for large N:
+        1) kmeans1D a random sample of nsample ~ sqrt(N) from X
+        2) full kmeans1D, starting from those centres
     """
-        # merge w kmeans ? mttiw
+        # merge w kmeans1D ? mttiw
         # v large N: sample N^1/2, N^1/2 of that
         # seed like sklearn ?
     N, dim = X.shape
@@ -137,8 +140,8 @@ def kmeanssample( X, k, nsample=0, **kwargs ):
         nsample = max( 2*np.sqrt(N), 10*k )
     Xsample = randomsample( X, int(nsample) )
     pass1centres = randomsample( X, int(k) )
-    samplecentres = kmeans( Xsample, pass1centres, **kwargs )[0]
-    return kmeans( X, samplecentres, **kwargs )
+    samplecentres = kmeans1D( Xsample, pass1centres, **kwargs )[0]
+    return kmeans1D( X, samplecentres, **kwargs )
 
 
 def cdist_sparse( X, Y, **kwargs ):
@@ -188,28 +191,28 @@ def Lqmetric( x, y=None, q=.5 ):
         else (np.abs(x) ** q) .mean()
 
 
-class Kmeans:
-    """ km = Kmeans( X, k= or centres=, ... )
-        in: either initial centres= for kmeans
-            or k= [nsample=] for kmeanssample
-        out: km.centres, km.Xtocentre, km.distances
-        iterator:
-            for jcentre, J in km:
-                clustercentre = centres[jcentre]
-                J indexes e.g. X[J], classes[J]
-    """
-    def __init__( self, X, k=0, centres=None, nsample=0, **kwargs ):
-        self.X = X
-        if centres is None:
-            self.centres, self.Xtocentre, self.distances = kmeanssample(
-                X, k=k, nsample=nsample, **kwargs )
-        else:
-            self.centres, self.Xtocentre, self.distances = kmeans(
-                X, centres, **kwargs )
+# class Kmeans:
+#     """ km = Kmeans( X, k= or centres=, ... )
+#         in: either initial centres= for kmeans1D
+#             or k= [nsample=] for kmeans1Dsample
+#         out: km.centres, km.Xtocentre, km.distances
+#         iterator:
+#             for jcentre, J in km:
+#                 clustercentre = centres[jcentre]
+#                 J indexes e.g. X[J], classes[J]
+#     """
+#     def __init__( self, X, k=0, centres=None, nsample=0, **kwargs ):
+#         self.X = X
+#         if centres is None:
+#             self.centres, self.Xtocentre, self.distances = kmeans1Dsample(
+#                 X, k=k, nsample=nsample, **kwargs )
+#         else:
+#             self.centres, self.Xtocentre, self.distances = kmeans1D(
+#                 X, centres, **kwargs )
 
-    def __iter__(self):
-        for jc in range(len(self.centres)):
-            yield jc, (self.Xtocentre == jc)
+#     def __iter__(self):
+#         for jc in range(len(self.centres)):
+#             yield jc, (self.Xtocentre == jc)
 
 
 if __name__ == "__main__":
@@ -236,7 +239,7 @@ if __name__ == "__main__":
 	randomcentres = randomsample( X, ncluster )
 
 
-	centres, xtoc, dist = kmeans( X, randomcentres,
+	centres, xtoc, dist = kmeans1D( X, randomcentres,
 		delta=kmdelta, maxiter=kmiter, verbose=2)
 
 
@@ -260,7 +263,7 @@ if __name__ == "__main__":
     # N = 10000
     # dim = 2
     # ncluster = 10
-    # kmsample = 100  # 0: random centres, > 0: kmeanssample
+    # kmsample = 100  # 0: random centres, > 0: kmeans1Dsample
     # kmdelta = .001
     # kmiter = 10
     # metric = "cityblock"  # "chebyshev" = max, "cityblock" L1,  Lqmetric
@@ -277,10 +280,10 @@ if __name__ == "__main__":
     #     # cf scikits-learn datasets/
     # t0 = time()
     # if kmsample > 0:
-    #     centres, xtoc, dist = kmeanssample( X, ncluster, nsample=kmsample,
+    #     centres, xtoc, dist = kmeans1Dsample( X, ncluster, nsample=kmsample,
     #         delta=kmdelta, maxiter=kmiter, metric=metric, verbose=2 )
     # else:
     #     randomcentres = randomsample( X, ncluster )
-    #     centres, xtoc, dist = kmeans( X, randomcentres,
+    #     centres, xtoc, dist = kmeans1D( X, randomcentres,
     #         delta=kmdelta, maxiter=kmiter, metric=metric, verbose=2 )
     # print "%.0f msec" % ((time() - t0) * 1000)
