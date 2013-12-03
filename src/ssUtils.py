@@ -515,10 +515,6 @@ def cropTest(mu_c_int, sig_c_int, mu_s_int, sig_s_int, left, upper, right, lower
 
 
 
-
-
-
-
 if __name__ == '__main__':
 	image = readConvert('/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/crop.jpg')
 	print image.shape
