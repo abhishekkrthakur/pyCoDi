@@ -227,8 +227,8 @@ def SSCS_Dist_Color(OSMatrix, sizeIn, sizeOut):
 	# plotImg(c1_bar_c[1,0])
 	# plotImg(c1_bar_c[1,1])
 
-	print c1_bar_c[0,0]
-	print c1_bar_c[0,1]
+	#print c1_bar_c[0,0]
+	#print c1_bar_c[0,1]
 
 	# create mu for center and surround
 
