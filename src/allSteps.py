@@ -62,6 +62,29 @@ if __name__ == '__main__':
 	print "ROI selection for test image"
 	screen, px = setup(imgFile)
 	left, upper, right, lower = mainLoop(screen, px)
+
+	print "creating OSMatrix"
+	OSMatrix = scaleSpaceRepresentation(image, scales = 2, octaves = 5)
+
+	print "processing for intensity channel"
+	mu_c_int, sig_c_int, mu_s_int, sig_s_int = SSCS_Dist_Intensity(OSMatrix, 1.0, 10.0)
+
+	print "processing for color channel"
+	mu_c_col, sig_c_col, mu_s_col, sig_s_col = SSCS_Dist_Color(OSMatrix, 1.0, 10.0)
+
+	print "extracting intensity regions from training image"
+	mu_c_int_test, sig_c_int_test, mu_s_int_test, sig_s_int_test = cropTest(mu_c_int, sig_c_int, mu_s_int, sig_s_int, 
+																			left, upper, right, lower)
+
+	print "extracting color region from training image"
+	mu_c_col_test, sig_c_col_test, mu_s_col_test, sig_s_col_test = cropTest(mu_c_col, sig_c_col, mu_s_col, sig_s_col, 
+																			left, upper, right, lower)
+
+	#print mu_c_col_test.shape
+	#print mu_c_col_test[0,0].shape
+
+
+
 	#print left, upper, right, lower
 	#plotImg(image[upper:lower,left:right])
 

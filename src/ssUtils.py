@@ -16,6 +16,9 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats
+from kMeansW2 import *
+#from kMeansW2_2D import *
+
 
 def savePlot(data, filename):
 #Rescale to 0-255 and convert to uint8
@@ -493,25 +496,67 @@ def cropTest(mu_c_int, sig_c_int, mu_s_int, sig_s_int, left, upper, right, lower
 
 	"""
 
-	mu_c = np.array((mu_s_int.shape), dtype = 'object')
-	sig_c = np.array((mu_s_int.shape), dtype = 'object')
-	mu_s = np.array((mu_s_int.shape), dtype = 'object') 
-	sig_s = np.array((mu_s_int.shape), dtype = 'object')
+	mu_c = np.empty((mu_s_int.shape), dtype = 'object')
+	sig_c = np.empty((mu_s_int.shape), dtype = 'object')
+	mu_s = np.empty((mu_s_int.shape), dtype = 'object') 
+	sig_s = np.empty((mu_s_int.shape), dtype = 'object')
 
+	#print mu_c_int[0,0][2:4,:-1].shape
 
-
+	#26 55 59 140
+	#55:140, 26:59
+	#(170, 82)
 	for i in range(mu_c_int.shape[0]):
 		le = int(left/(2**i))
 		up = int(upper/(2**i))
 		rt = int(right/(2**i))
 		lo = int(lower/(2**i))
-		for j in range(mu_s_int.shape[1]):
+		
+		#print i
+		for j in range(mu_c_int.shape[1]):
+			#print mu_c_int[i,j].shape
+			#print le,up,rt,lo
+
+			##plotImg(mu_c_int[i,j])
 			mu_c[i,j] = mu_c_int[i,j][up:lo,le:rt]
 			sig_c[i,j] = sig_c_int[i,j][up:lo,le:rt]
 			mu_s[i,j] = mu_s_int[i,j][up:lo,le:rt]
 			sig_s[i,j] = sig_s_int[i,j][up:lo,le:rt]
 
 	return mu_c, sig_c, mu_s, sig_s
+
+def kMeansInt(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001):
+	"""
+	mu_c and sig_c have the same shape as OSMatrix.
+	mu_c and sig_c are the cropped mu and sigma for every region of the OSMatrix
+	"""
+	centroids = np.empty((mu_c.shape), dtype = 'object')
+
+	for i in range(mu_c.shape[0]):
+		for j in range(mu_c.shape[1]):
+			mu_sigma = np.asarray(zip(mu_c_int[i,j].ravel(), sig_c_int[i,j].ravel()))
+			data = mu_sigma
+
+			X = data
+			ncluster = n_clusters
+			kmdelta = delta
+			kmiter = n_iter
+
+			randomcentres = randomsample1d( X, ncluster )
+
+			centres, xtoc, dist = kmeans1d( X, randomcentres,
+										delta=kmdelta, maxiter=kmiter, verbose=2)
+
+			centroids[i,j] = centres
+
+	return centroids
+
+def kMeansCol(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001):
+	"""
+	mu_c and sig_c have the same shape as OSMatrix.
+	mu_c and sig_c are the cropped mu and sigma for every region of the OSMatrix
+	"""
+		
 
 
 
