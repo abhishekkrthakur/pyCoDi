@@ -12,7 +12,6 @@ import Image
 import os
 import matplotlib.pyplot as plt
 import matplotlib.mlab as mlab
-
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
@@ -78,6 +77,7 @@ def SS_supp_Intensity(OSMatrix):
 	Output: i, i^2 Matrices for every scale and every octave in the same format as the OSMatrix
 
 	"""
+	print OSMatrix
 	supInt1 = np.empty((OSMatrix.shape), dtype = 'object')
 	supInt2 = np.empty((OSMatrix.shape), dtype = 'object')
 
@@ -87,6 +87,11 @@ def SS_supp_Intensity(OSMatrix):
 			supInt2[i,j] = OSMatrix[i,j][:,:,0]**2.0 		# Take the square of all elements of the intensity channel
 
 	return supInt1, supInt2
+
+ # supInt1 = np.empty((OSMatrix.shape), dtype = 'object')
+ #        supInt2 = np.empty((OSMatrix.shape), dtype = 'object')
+ #        supInt1 =  OSMatrix[:,:,0] 
+ #        supInt2 = OSMatrix[:,:,0]**2.0
 
 def SS_supp_Color(OSMatrix):
 	"""
@@ -417,12 +422,72 @@ def SScombineScales(WInt):
 
 	return tempimg 
 
+def w2distance1D(mu1, sig1, mu2, sig2):
+	"""
+
+	Return the one dimensional W2 distance on euclidean norm.
+	all mu and sigma values are one dimensional single values
+
+	"""
+
+	t1 = np.linalg.norm(mu1 - mu2)
+	t1 = t1 * t1
+	t2 = sig1 + sig2
+	p1 = sig1
+	p2 = sig1
+	p3 = sig2
+
+	if p1 < 0.0:
+		p1 = 0.0
+
+	if p2 < 0.0:
+		p2 = 0.0
+
+	if p3 < 0.0:
+		p3 = 0.0
+
+	t3 = 2.0 * np.sqrt(np.sqrt(p1) * p3 * np.sqrt(p2))
+	if (t1 + t2 - t3) < 0:
+		result = 0.0
+	else:
+		result = np.sqrt(t1 + t2 - t3)
 
 
+	return result
+
+def w2distance2D(mu1, sig1, mu2, sig2):
+	"""
+
+	Returns the Wasserstein distance between two 2-Dimensional normal distributions
+
+	"""
+	t1 = np.linalg.norm(mu1 - mu2)
+
+	#print t1
+	t1 = t1 ** 2.0
+	#print t1
+	t2 = np.trace(sig2) + np.trace(sig1) 
+	p1 = np.trace(np.dot(sig1, sig2))
+	p2 =  (((np.linalg.det(np.dot(sig1, sig2)))))
+	if p2 < 0.0:
+		p2 = 0.0
+	p2 = np.sqrt(p2)
+	tt = p1 + 2.0*p2
+	if tt < 0.0:
+		tt = 0.0
+	t3 = 2.0 * np.sqrt(tt)
+	#print t3
+	if (t1 + t2 - t3) < 0:
+		result = 0.0
+		#print "here"
+	else:
+		result = np.sqrt(t1 + t2 - t3)
+
+	return result
 
 
 if __name__ == '__main__':
-	image = readConvert('/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/results/orig/0_3_3327.jpg')
+	image = readConvert('/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/crop.jpg')
 	OSMatrix = scaleSpaceRepresentation(image, scales = 2, octaves = 5)
 	mu_c_int, sig_c_int, mu_s_int, sig_s_int = SSCS_Dist_Intensity(OSMatrix, 1.0, 10.0)
 
@@ -437,16 +502,16 @@ if __name__ == '__main__':
 	#print (mu_c_int[0,0][1,1], mu_s_int[0,0][1,1])
 	#print (mu_c_int[0,0][2,2], mu_s_int[0,0][2,2])
 
-	WInt2 = SScomputeCSWassersteinColor(mu_c_col, sig_c_col, mu_s_col, sig_s_col)
+	# WInt2 = SScomputeCSWassersteinColor(mu_c_col, sig_c_col, mu_s_col, sig_s_col)
 
 	WInt1 = SScombineScales(WInt1)
-	WInt2 = SScombineScales(WInt2)
+	# WInt2 = SScombineScales(WInt2)
 
-	fin  = (WInt1 + WInt2)/2.0
+	# fin  = (WInt1 + WInt2)/2.0
 
-	plotImg(fin)
+	# plotImg(fin)
 	plotImg(WInt1)
-	plotImg(WInt2)
+	# plotImg(WInt2)
 	# plotImg(WInt[0,1])
 	# plotImg(WInt[0,2])
 	# plotImg(WInt[1,0])

@@ -60,22 +60,13 @@ def splitcenterdata(cND_Int_mu, cND_Int_sigma):
 if __name__ == '__main__':
 	# load the image as RGB, NOT BGR
 	print "load image..."
-	try:
-		filename = sys.argv[1]
-		
-	except:
-		print "no filename entered"
-
-	image = readImg(filename)
-	#print image
-
-	#cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma = csNDColor(image)
-	#WInt1 = computeCSWassersteinColor(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma)
-
-	cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma = csNDIntensity(image)
-	#WInt2 = computeCSWassersteinIntensity(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma)
+	image = readConvert('/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/crop.jpg')
+	OSMatrix = scaleSpaceRepresentation(image, scales = 2, octaves = 5)
+	mu_c_int, sig_c_int, mu_s_int, sig_s_int = SSCS_Dist_Intensity(OSMatrix, 1.0, 10.0)
+	#WInt1 = SScomputeCSWassersteinIntensity(mu_c_int, sig_c_int, mu_s_int, sig_s_int)
+	
 	#print cND_Int_mu
-	mu_sigma = splitcenterdata(cND_Int_mu, cND_Int_sigma)
+	mu_sigma = np.asarray(zip(mu_c_int[0,0].ravel(), sig_c_int[0,0].ravel())) #splitcenterdata(cND_Int_mu, cND_Int_sigma)
 
 	# print mu_sigma[0]
 
@@ -84,7 +75,7 @@ if __name__ == '__main__':
 	# print len(mu_sigma)
 	
 	# clustering
-	data = mu_sigma[0]
+	data = mu_sigma
 	centroids,_ = kmeans(data,5)
 	print centroids
 	#print data
@@ -101,32 +92,4 @@ if __name__ == '__main__':
 	plot(centroids[:,0],centroids[:,1],'sg',markersize=8)
 	show()
 
-	# compare with full image
-
-	image = readImg('/Users/abhishek/Documents/Thesis/testimages-saliency/dscn4311.jpg')
-
-	#cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma = csNDColor(image)
-	#WInt1 = computeCSWassersteinColor(cND_Int_mu, cND_Int_sigma, sND_Int_mu, sND_Int_sigma)
-
-	cND_Int_mu1, cND_Int_sigma1, sND_Int_mu, sND_Int_sigma = csNDIntensity(image)
-
-	#plotImg(cND_Int_mu1[0])
-
-	mu_sigma2 = splitcenterdata(cND_Int_mu1, cND_Int_sigma1)
-
-	dist = W2_center_center_Intensity(centroids, mu_sigma2[0])
-
-	# print dist[1].shape
-	# print dist[2].shape
-	# print dist[3].shape
-	# print dist[4].shape
-
-	plotImg(np.reshape(dist[0], cND_Int_mu1[0].shape))
-	plotImg(np.reshape(dist[1], cND_Int_mu1[0].shape))
-	plotImg(np.reshape(dist[2], cND_Int_mu1[0].shape))
-	plotImg(np.reshape(dist[3], cND_Int_mu1[0].shape))
-	plotImg(np.reshape(dist[4], cND_Int_mu1[0].shape))
-
-
-	#print len(dist), mu_sigma2[0].shape, len(centroids)
-
+	
