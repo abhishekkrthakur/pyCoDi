@@ -1,5 +1,6 @@
 import pygame, sys
 from PIL import Image
+import numpy as np
 pygame.init()
 
 def displayImage( screen, px, topleft):
@@ -36,6 +37,8 @@ def mainLoop(screen, px):
 if __name__ == "__main__":
     screen, px = setup(sys.argv[1])
     left, upper, right, lower = mainLoop(screen, px)
+    print left, upper, right, lower
     im = Image.open(sys.argv[1])
     im = im.crop(( left, upper, right, lower))
-    im.save(sys.argv[2])
+    print np.asarray(im)[:,:,0]
+    #im.save(sys.argv[2])

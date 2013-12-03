@@ -77,7 +77,7 @@ def SS_supp_Intensity(OSMatrix):
 	Output: i, i^2 Matrices for every scale and every octave in the same format as the OSMatrix
 
 	"""
-	print OSMatrix
+	#print OSMatrix
 	supInt1 = np.empty((OSMatrix.shape), dtype = 'object')
 	supInt2 = np.empty((OSMatrix.shape), dtype = 'object')
 
@@ -485,10 +485,45 @@ def w2distance2D(mu1, sig1, mu2, sig2):
 
 	return result
 
+def cropTest(mu_c_int, sig_c_int, mu_s_int, sig_s_int, left, upper, right, lower):
+
+	"""
+
+	Crops the center and surround distributions from all scales and octaves
+
+	"""
+
+	mu_c = np.array((mu_s_int.shape), dtype = 'object')
+	sig_c = np.array((mu_s_int.shape), dtype = 'object')
+	mu_s = np.array((mu_s_int.shape), dtype = 'object') 
+	sig_s = np.array((mu_s_int.shape), dtype = 'object')
+
+
+
+	for i in range(mu_c_int.shape[0]):
+		le = int(left/(2**i))
+		up = int(upper/(2**i))
+		rt = int(right/(2**i))
+		lo = int(lower/(2**i))
+		for j in range(mu_s_int.shape[1]):
+			mu_c[i,j] = mu_c_int[i,j][up:lo,le:rt]
+			sig_c[i,j] = sig_c_int[i,j][up:lo,le:rt]
+			mu_s[i,j] = mu_s_int[i,j][up:lo,le:rt]
+			sig_s[i,j] = sig_s_int[i,j][up:lo,le:rt]
+
+	return mu_c, sig_c, mu_s, sig_s
+
+
+
+
+
+
 
 if __name__ == '__main__':
 	image = readConvert('/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/crop.jpg')
+	print image.shape
 	OSMatrix = scaleSpaceRepresentation(image, scales = 2, octaves = 5)
+	#print (OSMatrix[0,0].shape)
 	mu_c_int, sig_c_int, mu_s_int, sig_s_int = SSCS_Dist_Intensity(OSMatrix, 1.0, 10.0)
 
 	#print (mu_c_int[0,0][1,1], mu_s_int[0,0][1,1])
