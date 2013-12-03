@@ -685,7 +685,7 @@ def kmeans1D( X, centres, delta=.001, maxiter=10, p=2, verbose=0 ):
         else centres.copy()
     N, dim = X.shape
     k, cdim = centres.shape
-    print X.shape
+    #print X.shape
     if dim != cdim:
         raise ValueError( "kmeans1D: X %s and centres %s must have the same number of columns" % (
             X.shape, centres.shape ))
@@ -796,9 +796,12 @@ def kMeansInt(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 	"""
 	centroids = np.empty((mu_c.shape), dtype = 'object')
 
+	#print mu_c[0,0].shape, mu_c[1,0].shape, mu_c[2,0].shape
+
 	for i in range(mu_c.shape[0]):
 		for j in range(mu_c.shape[1]):
 			mu_sigma = np.asarray(zip(mu_c[i,j].ravel(), sig_c[i,j].ravel()))
+			#print mu_sigma.shape
 			data = mu_sigma
 
 			X = data
@@ -882,7 +885,7 @@ def computeW2CentroidDiffInt(centroids, OSMatrixTestmu, OSMatrixTestsigma ):
 					for p in range(lencent):
 						dist.append(w2distance1D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
 					#print dist
-					val = np.min(dist)
+					val = np.exp(-np.min(dist))# - np.min(dist)
 					#print val
 					tempimg[r,s] = val
 			tempmat[i,j] = tempimg
@@ -906,7 +909,7 @@ def computeW2CentroidDiffCol(centroids, OSMatrixTestmu, OSMatrixTestsigma ):
 					for p in range(lencent):
 						dist.append(w2distance2D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
 					#print dist
-					val = np.min(dist)
+					val = np.exp(-np.min(dist))
 					#print val
 					tempimg[r,s] = val
 			tempmat[i,j] = tempimg
