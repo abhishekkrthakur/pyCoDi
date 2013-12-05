@@ -55,7 +55,7 @@ def mainLoop(screen, px):
 if __name__ == '__main__':
 	print "Loading Image ///// Parameter adjustment is not allowed at the moment ///"
 
-	imgFile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/SCHREIBTISCH_DUNKEL2_0011.jpg'
+	imgFile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/art2.jpg'
 
 	print "converting image...."
 	image = readConvert(imgFile)
@@ -65,7 +65,7 @@ if __name__ == '__main__':
 	left, upper, right, lower = mainLoop(screen, px)
 
 	print "creating OSMatrix"
-	OSMatrix = scaleSpaceRepresentation(image, scales = 3, octaves = 3)
+	OSMatrix = scaleSpaceRepresentation(image, scales = 2, octaves = 3)
 
 	cPickle.dump(OSMatrix, open('../OSMatrix_SCHREIBTISCH_DUNKEL2_0011_Scales_3___Octaves_3.pkl', 'wb'), -1)
 	print "pickle dumped"
@@ -85,19 +85,61 @@ if __name__ == '__main__':
 																			left, upper, right, lower)
 
 	print "clustering all scales and octaves of the test region - intensity"
-	centroidsInt = kMeansInt(mu_c_int_test, sig_c_int_test, n_iter = 100, n_clusters = 3, delta = 0.001, verbose = 0)
+	centroidsInt1 = kMeansInt(mu_c_int_test, sig_c_int_test, n_iter = 1000, n_clusters = 3, delta = 0.001, verbose = 2)
 
 	print "clustering all scales and octaves of the test region - color"
-	centroidsCol = kMeansCol(mu_c_col_test, sig_c_col_test, n_iter = 100, n_clusters = 3, delta = 0.001, verbose = 0)
+	centroidsCol1 = kMeansCol(mu_c_col_test, sig_c_col_test, n_iter = 1000, n_clusters = 3, delta = 0.001, verbose = 2)
 
 
-	testfile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/SCHREIBTISCH_DUNKEL2_0011.jpg'
+
+
+	# imgFile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/art3.jpg'
+
+	# print "converting image...."
+	# image = readConvert(imgFile)
+
+	# print "ROI selection for test image"
+	# screen, px = setup(imgFile)
+	# left, upper, right, lower = mainLoop(screen, px)
+
+	# print "creating OSMatrix"
+	# OSMatrix = scaleSpaceRepresentation(image, scales = 2, octaves = 3)
+
+	# cPickle.dump(OSMatrix, open('../OSMatrix_SCHREIBTISCH_DUNKEL2_0011_Scales_3___Octaves_3.pkl', 'wb'), -1)
+	# print "pickle dumped"
+
+	# print "processing for intensity channel"
+	# mu_c_int, sig_c_int, mu_s_int, sig_s_int = SSCS_Dist_Intensity(OSMatrix, 1.0, 10.0)
+
+	# print "processing for color channel"
+	# mu_c_col, sig_c_col, mu_s_col, sig_s_col = SSCS_Dist_Color(OSMatrix, 1.0, 10.0)
+
+	# print "extracting intensity regions from training image"
+	# mu_c_int_test, sig_c_int_test, mu_s_int_test, sig_s_int_test = cropTest(mu_c_int, sig_c_int, mu_s_int, sig_s_int, 
+	# 																		left, upper, right, lower)
+
+	# print "extracting color region from training image"
+	# mu_c_col_test, sig_c_col_test, mu_s_col_test, sig_s_col_test = cropTest(mu_c_col, sig_c_col, mu_s_col, sig_s_col, 
+	# 																		left, upper, right, lower)
+
+	# print "clustering all scales and octaves of the test region - intensity"
+	# centroidsInt2 = kMeansInt(mu_c_int_test, sig_c_int_test, n_iter = 1000, n_clusters = 3, delta = 0.001, verbose = 2)
+
+	# print "clustering all scales and octaves of the test region - color"
+	# centroidsCol2 = kMeansCol(mu_c_col_test, sig_c_col_test, n_iter = 1000, n_clusters = 3, delta = 0.001, verbose = 2)
+
+
+	# centroidsInt = np.vstack((centroidsInt1, centroidsInt2))
+	# centroidsCol = np.vstack((centroidsCol1, centroidsCol2))
+
+
+	testfile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/art4.jpg'
 
 	print "converting image...."
 	testimage = readConvert(testfile)
 
 	print "creating OSMatrix"
-	OSMatrixTest = scaleSpaceRepresentation(testimage, scales = 3, octaves = 3)
+	OSMatrixTest = scaleSpaceRepresentation(testimage, scales = 2, octaves = 3)
 
 	print "processing for intensity channel"
 	mu_c_intT, sig_c_intT, mu_s_intT, sig_s_intT = SSCS_Dist_Intensity(OSMatrixTest, 1.0, 10.0)
@@ -106,24 +148,41 @@ if __name__ == '__main__':
 	mu_c_colT, sig_c_colT, mu_s_colT, sig_s_colT = SSCS_Dist_Color(OSMatrixTest, 1.0, 10.0)
 
 	print "computeW2CentroidDiffInt"
-	tempmat1 = computeW2CentroidDiffInt(centroidsInt, mu_c_intT, sig_c_intT)
+	tempmat1 = computeW2CentroidDiffInt(centroidsInt1, mu_c_intT, sig_c_intT)
 
 	print "computeW2CentroidDiffCol"
-	tempmat2 = computeW2CentroidDiffCol(centroidsCol, mu_c_colT, sig_c_colT)
+	tempmat2 = computeW2CentroidDiffCol(centroidsCol1, mu_c_colT, sig_c_colT)
 
-	# WInt = SScomputeCSWassersteinIntensity(mu_c_intT, sig_c_intT, mu_s_intT, sig_s_intT)
+	WInt1 = SScomputeCSWassersteinIntensity(mu_c_intT, sig_c_intT, mu_s_intT, sig_s_intT)
+	WInt2 = SScomputeCSWassersteinColor(mu_c_colT, sig_c_colT, mu_s_colT, sig_s_colT)
+
+
 
 	#WInt = SScombineScales(WInt)
 	tempmat1 = (SScombineScales(tempmat1))
 	tempmat2 = (SScombineScales(tempmat2))
 	t = (tempmat1 + tempmat2)/2.0
 
+	plotImg(tempmat1)
+	plotImg(tempmat2)
+
+	tempmat1 = (SScombineScales(WInt1))
+	tempmat2 = (SScombineScales(WInt2))
+	t2 = (tempmat1 + tempmat2)/2.0
 
 
 	#plotImg(WInt)
-	plotImg(tempmat1)
-	plotImg(tempmat2)
+
 	plotImg(t)
+
+	plotImg(t2)
+
+
+	fact = 0.8
+	smap = (1-fact)*t2 + fact*t
+	plotImg(smap)
+
+
 	# for i in range(tempmat1.shape[0]):
 	# 	for j in range(tempmat1.shape[1]):
 	# 		if tempmat1[i][j] == 0:

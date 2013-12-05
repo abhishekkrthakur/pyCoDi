@@ -788,7 +788,6 @@ def Lqmetric( x, y=None, q=.5 ):
     return (np.abs(x - y) ** q) .mean() if y is not None \
         else (np.abs(x) ** q) .mean()
 
-
 def kMeansInt(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose = 2):
 	"""
 	mu_c and sig_c have the same shape as OSMatrix.
@@ -800,7 +799,7 @@ def kMeansInt(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 
 	for i in range(mu_c.shape[0]):
 		for j in range(mu_c.shape[1]):
-			mu_sigma = np.asarray(zip(mu_c[i,j].ravel(), sig_c[i,j].ravel()))
+			mu_sigma = np.array([mu_c[i,j].ravel(), sig_c[i,j].ravel()]).T
 			#print mu_sigma.shape
 			data = mu_sigma
 
@@ -808,6 +807,9 @@ def kMeansInt(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 			ncluster = n_clusters
 			kmdelta = delta
 			kmiter = n_iter
+
+			print X.shape, ncluster
+
 
 			if X.shape[0] <= ncluster:
 				ncluster = 1
@@ -819,7 +821,96 @@ def kMeansInt(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 
 			centroids[i,j] = centres
 
+
+			# idx,_ = vq(data,centres)
+
+			# centroids1 = centres
+
+			# plot(data[idx==0,0],data[idx==0,1],'ob',
+			#      data[idx==1,0],data[idx==1,1],'or',
+			#      data[idx==2,0],data[idx==2,1],'og',
+			#      data[idx==3,0],data[idx==3,1],'oy',
+			#      data[idx==4,0],data[idx==4,1],'oc')
+
+			# plot(centroids1[:,0],centroids1[:,1],'sg',markersize=8)
+			# show()
+
 	return centroids
+
+def RFCol(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose = 2):
+	"""
+	mu_c and sig_c have the same shape as OSMatrix.
+	mu_c and sig_c are the cropped mu and sigma for every region of the OSMatrix
+	"""
+	centroids = np.empty((mu_c.shape), dtype = 'object')
+	newl = []
+	for i in range(mu_c.shape[0]):
+		for j in range(mu_c.shape[1]):
+			for r in range(mu_c[i,j].shape[0]):
+				for s in range(mu_c[i,j].shape[1]):
+					ll = mu_c[i,j][r,s].ravel().tolist() + sig_c[i,j][r,s].ravel().tolist()
+					#print ll
+					newl.append(ll)
+
+	return np.asarray(newl)
+
+
+def RFInt(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose = 2):
+	"""
+	mu_c and sig_c have the same shape as OSMatrix.
+	mu_c and sig_c are the cropped mu and sigma for every region of the OSMatrix
+	"""
+	centroids = np.empty((mu_c.shape), dtype = 'object')
+	newl = []
+	for i in range(mu_c.shape[0]):
+		for j in range(mu_c.shape[1]):
+			for r in range(mu_c[i,j].shape[0]):
+				for s in range(mu_c[i,j].shape[1]):
+					ll = [mu_c[i,j][r,s].tolist(),sig_c[i,j][r,s].tolist()]
+					#print ll
+					newl.append(ll)
+
+	return np.asarray(newl)
+
+def convertRFPredToImg(preds, OSMatrixTest):
+	OSMatrix = np.empty((OSMatrixTest.shape), dtype = 'object')
+	#preds = list(preds)
+
+	for i in range(OSMatrixTest.shape[0]):
+		for j in range(OSMatrixTest.shape[1]):
+
+			begin = 0
+			end = OSMatrixTest[i,j].shape[0] * OSMatrixTest[i,j].shape[1]
+
+			print i,j, len(preds[begin:end]),OSMatrixTest[i,j].shape[0],OSMatrixTest[i,j].shape[1]
+
+			testimg = np.reshape(preds[begin:end], (OSMatrixTest[i,j].shape[0],OSMatrixTest[i,j].shape[1] ))
+			preds = preds[end:]
+			#for p in range(begin, end):
+			#	preds = np.delete(preds,p)
+
+			# if i == 0:
+			# 	if j == 0:
+			# 		begin = 0
+			# 		end = OSMatrixTest[i,j].shape[0] * OSMatrixTest[i,j].shape[1]
+			# 		#print len(preds[begin:end]), OSMatrixTest[i,j].shape
+			# 		testimg = np.reshape(preds[begin:end], (OSMatrixTest[i,j].shape[0],OSMatrixTest[i,j].shape[1] ))
+			# 	else:
+			# 		begin = OSMatrixTest[i,j-1].shape[0] * OSMatrixTest[i,j].shape[1]
+			# 		end = OSMatrixTest[i,j].shape[0] * OSMatrixTest[i,j].shape[1]
+			# 		#print len(preds[begin:end]), OSMatrixTest[i,j].shape
+			# 		testimg = np.reshape(preds[begin:end], (OSMatrixTest[i,j].shape[0],OSMatrixTest[i,j].shape[1] ))
+			# else:
+			# 	begin = OSMatrixTest[i-1,j].shape[0] * OSMatrixTest[i-1,j].shape[1]
+			# 	end = OSMatrixTest[i,j].shape[0] * OSMatrixTest[i,j].shape[1]
+			# 	testimg = np.reshape(preds[begin:end], (OSMatrixTest[i,j].shape[0],OSMatrixTest[i,j].shape[1] ))
+
+			OSMatrix[i,j] = testimg
+
+	return OSMatrix
+
+
+
 
 def kMeansCol(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose = 2):
 	"""
@@ -885,7 +976,7 @@ def computeW2CentroidDiffInt(centroids, OSMatrixTestmu, OSMatrixTestsigma ):
 					for p in range(lencent):
 						dist.append(w2distance1D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
 					#print dist
-					val = 1./(1. + np.exp(-np.min(dist)))# - np.min(dist)
+					val = np.exp(-np.min(dist))# - np.min(dist)
 					#print val
 					tempimg[r,s] = val
 			tempmat[i,j] = tempimg
@@ -909,7 +1000,7 @@ def computeW2CentroidDiffCol(centroids, OSMatrixTestmu, OSMatrixTestsigma ):
 					for p in range(lencent):
 						dist.append(w2distance2D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
 					#print dist
-					val = 1./(1. + np.exp(-np.min(dist)))
+					val = np.exp(-np.min(dist))
 					#print val
 					tempimg[r,s] = val
 			tempmat[i,j] = tempimg
@@ -929,7 +1020,8 @@ def invertImg(image):
 
 
 if __name__ == '__main__':
-	image = readConvert('/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/crop.jpg')
+	
+	image = readConvert('/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/iar_sal.jpg')
 	print image.shape
 	OSMatrix = scaleSpaceRepresentation(image, scales = 2, octaves = 3)
 	#print (OSMatrix[0,0].shape)
@@ -946,16 +1038,18 @@ if __name__ == '__main__':
 	#print (mu_c_int[0,0][1,1], mu_s_int[0,0][1,1])
 	#print (mu_c_int[0,0][2,2], mu_s_int[0,0][2,2])
 
-	# WInt2 = SScomputeCSWassersteinColor(mu_c_col, sig_c_col, mu_s_col, sig_s_col)
+	WInt2 = SScomputeCSWassersteinColor(mu_c_col, sig_c_col, mu_s_col, sig_s_col)
 
 	WInt1 = SScombineScales(WInt1)
-	# WInt2 = SScombineScales(WInt2)
+	WInt2 = SScombineScales(WInt2)
 
-	# fin  = (WInt1 + WInt2)/2.0
+	fin  = (WInt1 + WInt2)/2.0
 
-	# plotImg(fin)
+
 	plotImg(WInt1)
-	# plotImg(WInt2)
+	plotImg(WInt2)
+	plotImg(fin)
+
 	# plotImg(WInt[0,1])
 	# plotImg(WInt[0,2])
 	# plotImg(WInt[1,0])
