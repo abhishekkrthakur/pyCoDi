@@ -55,7 +55,7 @@ def mainLoop(screen, px):
 if __name__ == '__main__':
 	print "Loading Image ///// Parameter adjustment is not allowed at the moment ///"
 
-	imgFile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/art2.jpg'
+	imgFile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/pix.png'
 
 	print "converting image...."
 	image = readConvert(imgFile)
@@ -133,7 +133,7 @@ if __name__ == '__main__':
 	# centroidsCol = np.vstack((centroidsCol1, centroidsCol2))
 
 
-	testfile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/art4.jpg'
+	testfile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/pix.png'
 
 	print "converting image...."
 	testimage = readConvert(testfile)
@@ -153,8 +153,8 @@ if __name__ == '__main__':
 	print "computeW2CentroidDiffCol"
 	tempmat2 = computeW2CentroidDiffCol(centroidsCol1, mu_c_colT, sig_c_colT)
 
-	WInt1 = SScomputeCSWassersteinIntensity(mu_c_intT, sig_c_intT, mu_s_intT, sig_s_intT)
-	WInt2 = SScomputeCSWassersteinColor(mu_c_colT, sig_c_colT, mu_s_colT, sig_s_colT)
+	#WInt1 = SScomputeCSWassersteinIntensity(mu_c_intT, sig_c_intT, mu_s_intT, sig_s_intT)
+	#WInt2 = SScomputeCSWassersteinColor(mu_c_colT, sig_c_colT, mu_s_colT, sig_s_colT)
 
 
 
@@ -166,21 +166,21 @@ if __name__ == '__main__':
 	plotImg(tempmat1)
 	plotImg(tempmat2)
 
-	tempmat1 = (SScombineScales(WInt1))
-	tempmat2 = (SScombineScales(WInt2))
-	t2 = (tempmat1 + tempmat2)/2.0
+	#tempmat1 = (SScombineScales(WInt1))
+	#tempmat2 = (SScombineScales(WInt2))
+	#t2 = (tempmat1 + tempmat2)/2.0
 
 
 	#plotImg(WInt)
 
 	plotImg(t)
 
-	plotImg(t2)
+	# plotImg(t2)
 
 
-	fact = 0.8
-	smap = (1-fact)*t2 + fact*t
-	plotImg(smap)
+	# fact = 0.8
+	# smap = (1-fact)*t2 + fact*t
+	# plotImg(smap)
 
 
 	# for i in range(tempmat1.shape[0]):
