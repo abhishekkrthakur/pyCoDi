@@ -55,7 +55,7 @@ def mainLoop(screen, px):
 if __name__ == '__main__':
 	print "Loading Image ///// Parameter adjustment is not allowed at the moment ///"
 
-	imgFile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/pix.png'
+	imgFile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/pix2.png'
 
 	print "converting image...."
 	image = readConvert(imgFile)
@@ -133,7 +133,7 @@ if __name__ == '__main__':
 	# centroidsCol = np.vstack((centroidsCol1, centroidsCol2))
 
 
-	testfile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/pix.png'
+	testfile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/pix3.png'
 
 	print "converting image...."
 	testimage = readConvert(testfile)
@@ -156,61 +156,14 @@ if __name__ == '__main__':
 	#WInt1 = SScomputeCSWassersteinIntensity(mu_c_intT, sig_c_intT, mu_s_intT, sig_s_intT)
 	#WInt2 = SScomputeCSWassersteinColor(mu_c_colT, sig_c_colT, mu_s_colT, sig_s_colT)
 
-
-
-	#WInt = SScombineScales(WInt)
 	tempmat1 = (SScombineScales(tempmat1))
 	tempmat2 = (SScombineScales(tempmat2))
 	t = (tempmat1 + tempmat2)/2.0
 
 	plotImg(tempmat1)
 	plotImg(tempmat2)
-
-	#tempmat1 = (SScombineScales(WInt1))
-	#tempmat2 = (SScombineScales(WInt2))
-	#t2 = (tempmat1 + tempmat2)/2.0
-
-
-	#plotImg(WInt)
-
 	plotImg(t)
 
-	# plotImg(t2)
-
-
-	# fact = 0.8
-	# smap = (1-fact)*t2 + fact*t
-	# plotImg(smap)
-
-
-	# for i in range(tempmat1.shape[0]):
-	# 	for j in range(tempmat1.shape[1]):
-	# 		if tempmat1[i][j] == 0:
-	# 			tempmat1[i][j] = 255
-			#else:
-			#	tempmat1[i][j] = 0
-	#tempmat1 = tempmat1[tempmat1 == 0] = 255.0
-	#plotImg(tempmat1)
-	#plotImg(tempmat2)
-
-
-	# print centroidsCol.shape
-	# print centroidsCol[0,0]#.shape
-
-
-
-	#print left, upper, right, lower
-	#plotImg(image[upper:lower,left:right])
-
-	# im = Image.open(imgFile)
-	# im = im.crop(( left, upper, right, lower))
-	# #print np.asarray(im)
-
-	# OSMatrix = scaleSpaceRepresentation(image, scales = 2, octaves = 5)
-	# mu_c_int, sig_c_int, mu_s_int, sig_s_int = SSCS_Dist_Intensity(OSMatrix, 1.0, 10.0)
-	# # WInt1 = SScomputeCSWassersteinIntensity(mu_c_int, sig_c_int, mu_s_int, sig_s_int)
-	# mu_c_col, sig_c_col, mu_s_col, sig_s_col = SSCS_Dist_Color(OSMatrix, 1.0, 10.0)
-	# # WInt2 = SScomputeCSWassersteinColor(mu_c_col, sig_c_col, mu_s_col, sig_s_col)
 
 
 
