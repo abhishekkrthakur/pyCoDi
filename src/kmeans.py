@@ -241,7 +241,7 @@ def kmeans(data, nclusters, niter,delta,datatype, verbose = False):
 				if datatype == 1:
 					initial[jc] = NDMean(data[c])#.mean(axis = 0)
 				elif datatype == 2:
-					print initial[jc].shape, NDMean2D(data[c]).shape
+					#print initial[jc].shape, NDMean2D(data[c]).shape
 					initial[jc] = NDMean2D(data[c])
 
 	return initial, xtoc, distances 
