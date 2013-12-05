@@ -55,7 +55,7 @@ def mainLoop(screen, px):
 if __name__ == '__main__':
 	print "Loading Image ///// Parameter adjustment is not allowed at the moment ///"
 
-	imgFile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/pix2.png'
+	imgFile = '/Users/abhishek/Documents/Thesis/images-td-exp-diss-simone/traindata/schreibtisch_dunkel2_0004.ppm'
 
 	print "converting image...."
 	image = readConvert(imgFile)
@@ -133,7 +133,7 @@ if __name__ == '__main__':
 	# centroidsCol = np.vstack((centroidsCol1, centroidsCol2))
 
 
-	testfile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/pix3.png'
+	testfile = '/Users/abhishek/Documents/Thesis/images-td-exp-diss-simone/traindata/schreibtisch_dunkel2_0005.ppm'
 
 	print "converting image...."
 	testimage = readConvert(testfile)
