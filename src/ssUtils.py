@@ -48,9 +48,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats
-from kMeansW2 import *
 import random
-#from kMeansW2_2D import *
 
 
 def savePlot(data, filename):
@@ -124,10 +122,6 @@ def SS_supp_Intensity(OSMatrix):
 
 	return supInt1, supInt2
 
- # supInt1 = np.empty((OSMatrix.shape), dtype = 'object')
- #        supInt2 = np.empty((OSMatrix.shape), dtype = 'object')
- #        supInt1 =  OSMatrix[:,:,0] 
- #        supInt2 = OSMatrix[:,:,0]**2.0
 
 def SS_supp_Color(OSMatrix):
 	"""
@@ -886,24 +880,6 @@ def convertRFPredToImg(preds, OSMatrixTest):
 
 			testimg = np.reshape(preds[begin:end], (OSMatrixTest[i,j].shape[0],OSMatrixTest[i,j].shape[1] ))
 			preds = preds[end:]
-			#for p in range(begin, end):
-			#	preds = np.delete(preds,p)
-
-			# if i == 0:
-			# 	if j == 0:
-			# 		begin = 0
-			# 		end = OSMatrixTest[i,j].shape[0] * OSMatrixTest[i,j].shape[1]
-			# 		#print len(preds[begin:end]), OSMatrixTest[i,j].shape
-			# 		testimg = np.reshape(preds[begin:end], (OSMatrixTest[i,j].shape[0],OSMatrixTest[i,j].shape[1] ))
-			# 	else:
-			# 		begin = OSMatrixTest[i,j-1].shape[0] * OSMatrixTest[i,j].shape[1]
-			# 		end = OSMatrixTest[i,j].shape[0] * OSMatrixTest[i,j].shape[1]
-			# 		#print len(preds[begin:end]), OSMatrixTest[i,j].shape
-			# 		testimg = np.reshape(preds[begin:end], (OSMatrixTest[i,j].shape[0],OSMatrixTest[i,j].shape[1] ))
-			# else:
-			# 	begin = OSMatrixTest[i-1,j].shape[0] * OSMatrixTest[i-1,j].shape[1]
-			# 	end = OSMatrixTest[i,j].shape[0] * OSMatrixTest[i,j].shape[1]
-			# 	testimg = np.reshape(preds[begin:end], (OSMatrixTest[i,j].shape[0],OSMatrixTest[i,j].shape[1] ))
 
 			OSMatrix[i,j] = testimg
 
@@ -942,21 +918,6 @@ def kMeansCol(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 	return centroids
 
 
-# def computeCentroidDistInt(numpyarray, centroids):
-# 	"""
-	
-# 	2d numpy array with mu and sigma values,
-# 	All centroid with mu and sigma after clustering
-
-# 	"""
-# 	newarr = np.zeros((numpyarray.shape))
-# 	for i in range(numpyarray.shape[0]):
-# 		for j in range(numpyarray.shape[1]):
-# 			tempval = []
-# 			print len(tempval)
-# 			for p in range(centroids[i,j].shape[0]):
-# 				tempval.append(w2distance1D(centroids[] ))
-# 				newarr[i,j] = w2distance1D(centroid)
 
 
 def computeW2CentroidDiffInt(centroids, OSMatrixTestmu, OSMatrixTestsigma ):
