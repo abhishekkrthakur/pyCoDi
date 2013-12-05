@@ -6,6 +6,69 @@ from ssUtils import *
 from ImageOperations import *
 import random
 
+def w2distance1D(mu1, sig1, mu2, sig2):
+	"""
+
+	Return the one dimensional W2 distance on euclidean norm.
+	all mu and sigma values are one dimensional single values
+
+	"""
+
+	t1 = np.linalg.norm(mu1 - mu2)
+	t1 = t1 * t1
+	t2 = sig1 + sig2
+	p1 = sig1
+	p2 = sig1
+	p3 = sig2
+
+	if p1 < 0.0:
+		p1 = 0.0
+
+	if p2 < 0.0:
+		p2 = 0.0
+
+	if p3 < 0.0:
+		p3 = 0.0
+
+	t3 = 2.0 * np.sqrt(np.sqrt(p1) * p3 * np.sqrt(p2))
+	if (t1 + t2 - t3) < 0:
+		result = 0.0
+	else:
+		result = np.sqrt(t1 + t2 - t3)
+
+
+	return result
+
+def w2distance2D(mu1, sig1, mu2, sig2):
+	"""
+
+	Returns the Wasserstein distance between two 2-Dimensional normal distributions
+
+	"""
+	t1 = np.linalg.norm(mu1 - mu2)
+
+	#print t1
+	t1 = t1 ** 2.0
+	#print t1
+	t2 = np.trace(sig2) + np.trace(sig1) 
+	p1 = np.trace(np.dot(sig1, sig2))
+	p2 =  (((np.linalg.det(np.dot(sig1, sig2)))))
+	if p2 < 0.0:
+		p2 = 0.0
+	p2 = np.sqrt(p2)
+	tt = p1 + 2.0*p2
+	if tt < 0.0:
+		tt = 0.0
+	t3 = 2.0 * np.sqrt(tt)
+	#print t3
+	if (t1 + t2 - t3) < 0:
+		result = 0.0
+		#print "here"
+	else:
+		result = np.sqrt(t1 + t2 - t3)
+
+	return result
+
 def distanceFunction1D(X,Y):
 	"""
 	Helper function to find distance between the 1d normal distributions.
@@ -60,6 +123,18 @@ def randomSampling(data, nclusters):
 	randomIndex = np.random.randint(0,data.shape[0], nclusters)
 	return data[randomIndex, :]
 
+def randomSampling2D(data, nclusters):
+	"""
+	Helper function for the k-Means clustering.
+	Returns given number of random samples from the data.
+	"""
+	dataarr = np.empty((nclusters, data.shape[1]), dtype = 'object')
+	randomIndex = np.random.randint(0,data.shape[0], nclusters)
+	#randomIndex = list(randomIndex)
+	for i in range(len(randomIndex)):
+		dataarr[i,:] = data[randomIndex[i]]
+	return dataarr
+
 def NDMean(X):
 	"""
 	A "somewhat" modified function to find the mean of normal distributions in a 
@@ -73,7 +148,33 @@ def NDMean(X):
 
 	m1 = m1/X.shape[0]
 	m2 = m2/X.shape[0]
+	#print np.array([m1,m2]).shape
 	return np.array([m1,m2])
+
+def NDMean2D(X):
+	"""
+	A "somewhat" modified function to find the mean of normal distributions in a 
+	given array of normal distributions
+	"""
+	m1 = 0
+	m2 = 0
+	meanarr = np.empty((2,), dtype = 'object')
+	meanlist = []
+	for i in range(X.shape[0]):
+		m1 += X[i,0]
+		m2 += X[i,1]
+
+	m1 = m1/X.shape[0]
+	m2 = m2/X.shape[0]
+	
+	#print m1,m2
+	# for i in range(len(meanlist)):
+	# 	meanarr[i,:] = np.asarray(meanlist[i])
+
+	#print m2
+	meanarr[0] = m1
+	meanarr[1] = m2
+	return meanarr
 
 
 def kmeans(data, nclusters, niter,delta,datatype, verbose = False):
@@ -96,7 +197,17 @@ def kmeans(data, nclusters, niter,delta,datatype, verbose = False):
 			d = Distance of all points from the cluster centers
 	"""
 
-	initial = randomSampling(data, nclusters)
+	
+	if datatype == 1: 
+		initial = randomSampling(data, nclusters)
+	elif datatype == 2:
+		initial = randomSampling2D(data, nclusters)
+	else:
+		raise ValueError("Datatype Can Either be 1 or 2. 1:One-Dimenesional Normal Distribution, 2:Two-Dimensional Normal Distribution")
+
+
+	
+
 	N, dim = data.shape
 	k, cdim = initial.shape
 
@@ -113,6 +224,7 @@ def kmeans(data, nclusters, niter,delta,datatype, verbose = False):
 			dist = distanceFunction2D(data, initial)
 		else:
 			raise ValueError("Datatype Can Either be 1 or 2. 1:One-Dimenesional Normal Distribution, 2:Two-Dimensional Normal Distribution")
+
 		xtoc = dist.argmin(axis = 1)
 		distances = dist[allX, xtoc]
 		avgdist = distances.mean()
@@ -125,7 +237,12 @@ def kmeans(data, nclusters, niter,delta,datatype, verbose = False):
 		for jc in range(k):
 			c = np.where(xtoc == jc)[0]
 			if len(c) > 0:
-				initial[jc] = NDMean(data[c])#.mean(axis = 0)
+				#if datatype == 2: print data[c].shape
+				if datatype == 1:
+					initial[jc] = NDMean(data[c])#.mean(axis = 0)
+				elif datatype == 2:
+					print initial[jc].shape, NDMean2D(data[c]).shape
+					initial[jc] = NDMean2D(data[c])
 
 	return initial, xtoc, distances 
 
