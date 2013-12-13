@@ -55,7 +55,7 @@ def mainLoop(screen, px):
 if __name__ == '__main__':
 	print "Loading Image ///// Parameter adjustment is not allowed at the moment ///"
 
-	imgFile = '/Users/abhishek/Documents/Thesis/images-td-exp-diss-simone/traindata/schreibtisch_dunkel2_0004.ppm'
+	imgFile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/pix2.png'
 
 	print "converting image...."
 	image = readConvert(imgFile)
@@ -65,7 +65,7 @@ if __name__ == '__main__':
 	left, upper, right, lower = mainLoop(screen, px)
 
 	print "creating OSMatrix"
-	OSMatrix = scaleSpaceRepresentation(image, scales = 2, octaves = 3)
+	OSMatrix = scaleSpaceRepresentation(image, scales = 1, octaves = 1)
 
 	cPickle.dump(OSMatrix, open('../OSMatrix_SCHREIBTISCH_DUNKEL2_0011_Scales_3___Octaves_3.pkl', 'wb'), -1)
 	print "pickle dumped"
@@ -133,13 +133,13 @@ if __name__ == '__main__':
 	# centroidsCol = np.vstack((centroidsCol1, centroidsCol2))
 
 
-	testfile = '/Users/abhishek/Documents/Thesis/images-td-exp-diss-simone/traindata/schreibtisch_dunkel2_0005.ppm'
+	testfile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/pix2.png'
 
 	print "converting image...."
 	testimage = readConvert(testfile)
 
 	print "creating OSMatrix"
-	OSMatrixTest = scaleSpaceRepresentation(testimage, scales = 2, octaves = 3)
+	OSMatrixTest = scaleSpaceRepresentation(testimage, scales = 1, octaves = 1)
 
 	print "processing for intensity channel"
 	mu_c_intT, sig_c_intT, mu_s_intT, sig_s_intT = SSCS_Dist_Intensity(OSMatrixTest, 1.0, 10.0)

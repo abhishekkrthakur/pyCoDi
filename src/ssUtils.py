@@ -583,6 +583,7 @@ def kMeansInt(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 			
 
 			centroids[i,j] = centres
+			print xtoc
 
 
 			# idx = xtoc
