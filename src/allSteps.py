@@ -65,7 +65,7 @@ if __name__ == '__main__':
 	left, upper, right, lower = mainLoop(screen, px)
 
 	print "creating OSMatrix"
-	OSMatrix = scaleSpaceRepresentation(image, scales = 1, octaves = 1)
+	OSMatrix = scaleSpaceRepresentation(image, scales = 2, octaves = 4)
 
 	cPickle.dump(OSMatrix, open('../OSMatrix_SCHREIBTISCH_DUNKEL2_0011_Scales_3___Octaves_3.pkl', 'wb'), -1)
 	print "pickle dumped"
@@ -85,10 +85,10 @@ if __name__ == '__main__':
 																			left, upper, right, lower)
 
 	print "clustering all scales and octaves of the test region - intensity"
-	centroidsInt1 = kMeansInt(mu_c_int_test, sig_c_int_test, n_iter = 1000, n_clusters = 3, delta = 0.001, verbose = 2)
+	centroidsInt1, wtI1 = kMeansInt(mu_c_int_test, sig_c_int_test, n_iter = 1000, n_clusters = 3, delta = 0.001, verbose = 2)
 
 	print "clustering all scales and octaves of the test region - color"
-	centroidsCol1 = kMeansCol(mu_c_col_test, sig_c_col_test, n_iter = 1000, n_clusters = 3, delta = 0.001, verbose = 2)
+	centroidsCol1, wtC1 = kMeansCol(mu_c_col_test, sig_c_col_test, n_iter = 1000, n_clusters = 3, delta = 0.001, verbose = 2)
 
 
 
@@ -139,7 +139,7 @@ if __name__ == '__main__':
 	testimage = readConvert(testfile)
 
 	print "creating OSMatrix"
-	OSMatrixTest = scaleSpaceRepresentation(testimage, scales = 1, octaves = 1)
+	OSMatrixTest = scaleSpaceRepresentation(testimage, scales = 2, octaves = 4)
 
 	print "processing for intensity channel"
 	mu_c_intT, sig_c_intT, mu_s_intT, sig_s_intT = SSCS_Dist_Intensity(OSMatrixTest, 1.0, 10.0)
@@ -148,10 +148,10 @@ if __name__ == '__main__':
 	mu_c_colT, sig_c_colT, mu_s_colT, sig_s_colT = SSCS_Dist_Color(OSMatrixTest, 1.0, 10.0)
 
 	print "computeW2CentroidDiffInt"
-	tempmat1 = computeW2CentroidDiffInt(centroidsInt1, mu_c_intT, sig_c_intT)
+	tempmat1 = computeW2CentroidDiffInt(centroidsInt1, wtI1, mu_c_intT, sig_c_intT)
 
 	print "computeW2CentroidDiffCol"
-	tempmat2 = computeW2CentroidDiffCol(centroidsCol1, mu_c_colT, sig_c_colT)
+	tempmat2 = computeW2CentroidDiffCol(centroidsCol1, wtC1, mu_c_colT, sig_c_colT)
 
 	#WInt1 = SScomputeCSWassersteinIntensity(mu_c_intT, sig_c_intT, mu_s_intT, sig_s_intT)
 	#WInt2 = SScomputeCSWassersteinColor(mu_c_colT, sig_c_colT, mu_s_colT, sig_s_colT)

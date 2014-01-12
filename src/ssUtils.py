@@ -50,7 +50,70 @@ import numpy as np
 from scipy import stats
 import random
 from kmeans import *
+from matplotlib.patches import Ellipse
+import matplotlib
+from pylab import figure, show, rand
+import itertools
+from collections import Counter
+matplotlib.use("Agg")
+ 
+import matplotlib.backends.backend_agg as agg
+from matplotlib.pylab import *
+import pypr.clustering.gmm as gmm
 
+def plot_ellipse(mean, var, ec = 'k', alpha = 1):
+	evals, evecs = np.linalg.eig(var)
+	#print evals
+	#print evecs
+	#print np.arctan2(evecs[1])
+	ang = np.degrees(np.arctan2(*evecs[1]))
+	print ang
+	ell = Ellipse(mean, *np.abs(evals), angle = ang, fc = 'None', ec = ec, alpha = alpha)
+	plt.gca().add_artist(ell)
+	print ell
+	#return plt
+	
+def softmax(X):
+   """
+   Implements the K-way softmax, (exp(X).T / exp(X).sum(axis=1)).T
+
+   Input:
+   		X : {array-like, sparse matrix}
+
+   Output:
+   		X_new : {array-like, sparse matrix}
+   """
+   exp_X = np.exp(X)
+   return (exp_X.T / exp_X.sum(axis=0)).T
+
+# def plot_ellipse(mean, var, ec = 'k', alpha = 1):
+
+
+# 	mean1 = mean.flatten()
+# 	cov1 = var
+
+# 	nobs = 2500
+# 	rvs1 = np.random.multivariate_normal(mean1, cov1, size=nobs)
+
+# 	#plt.plot(rvs1[:, 0], rvs1[:, 1], '.')
+# 	#NUM = 250
+# 	evals, evecs = np.linalg.eig(var)
+# 	ang = np.degrees(np.arctan2(evecs[:,0], evecs[:,1]))
+# 	ells = plt.plot(rvs1[:, 0], rvs1[:, 1], '.') #Ellipse(xy = rvs1, angle=ang, fc = 'None', ec = ec, alpha = alpha)
+
+# 	fig = figure()
+# 	ax = fig.add_subplot(111, aspect='equal')
+# 	e = ells
+# 	#for e in ells:
+# 	ax.add_artist(e)
+# 	e.set_clip_box(ax.bbox)
+# 	e.set_alpha(rand())
+# 	    #e.set_facecolor(rand(3))
+
+# 	ax.set_xlim(0, 10)
+# 	ax.set_ylim(0, 10)
+
+	#show()
 
 def savePlot(data, filename):
 #Rescale to 0-255 and convert to uint8
@@ -445,7 +508,8 @@ def SScombineScales(WInt):
 	tempimg = np.zeros((origshape))
 	for i in range(WInt.shape[0]):
 		for j in range(WInt.shape[1]):
-			tempimg += np.sqrt(i+1) * WInt[i,j]
+			#tempimg += np.sqrt(i+1) * WInt[i,j]
+			tempimg += WInt[i,j]
 
 	tempimg = tempimg/(origshape0 * origshape1)
 
@@ -559,6 +623,7 @@ def kMeansInt(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 	mu_c and sig_c are the cropped mu and sigma for every region of the OSMatrix
 	"""
 	centroids = np.empty((mu_c.shape), dtype = 'object')
+	weights = np.empty((mu_c.shape), dtype = 'object')
 
 	#print mu_c[0,0].shape, mu_c[1,0].shape, mu_c[2,0].shape
 
@@ -573,7 +638,7 @@ def kMeansInt(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 			kmdelta = delta
 			kmiter = n_iter
 
-			print X.shape, ncluster
+			#print X.shape, ncluster
 
 
 			if X.shape[0] <= ncluster:
@@ -583,7 +648,14 @@ def kMeansInt(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 			
 
 			centroids[i,j] = centres
-			print xtoc
+			wt = Counter( xtoc )
+			#wt = [(g[0], len(list(g[1]))) for g in itertools.groupby(xtoc)]
+			wt = wt.items()
+			print wt 
+			wt = [sec for (one,sec) in wt]
+			wt = [1 - (x/sum(wt)) for x in wt] #1 - (wt/sum(wt))
+			weights[i,j] = wt
+			print wt
 
 
 			# idx = xtoc
@@ -599,7 +671,8 @@ def kMeansInt(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 			# plot(centroids1[:,0],centroids1[:,1],'sg',markersize=8)
 			# show()
 
-	return centroids
+	#print centroids[0,0].shape, weights[0,0].shape
+	return centroids, weights
 
 def RFCol(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose = 2):
 	"""
@@ -664,6 +737,7 @@ def kMeansCol(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 	mu_c and sig_c are the cropped mu and sigma for every region of the OSMatrix
 	"""
 	centroids = np.empty((mu_c.shape), dtype = 'object')
+	weights = np.empty((mu_c.shape), dtype = 'object')
 
 	for i in range(mu_c.shape[0]):
 		for j in range(mu_c.shape[1]):
@@ -682,12 +756,55 @@ def kMeansCol(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 
 			centroids[i,j] = centres
 
-	return centroids
+
+			wt = Counter( xtoc )
+			#wt = [(g[0], len(list(g[1]))) for g in itertools.groupby(xtoc)]
+			wtx = wt.items() 
+			wt = [sec for (one,sec) in wtx]
+			one = [one for (one,sec) in wtx]
+			wt = [1 - (x/sum(wt)) for x in wt] #1 - (wt/sum(wt))
+			weights[i,j] = wt
+			# print wt
+			# print centres
+			# print xtoc
+			mean_centroids = (centres[:,0])
+			variance_centroids = (centres[:,1])
+			mean_centroids = [x.flatten() for x in mean_centroids]
+			#print mean_centroids
+
+			#mean_centroids = np.reshape(mean_centroids, (len(centres), 2))
+			#variance_centroids = np.reshape(variance_centroids, (len(centres),2,2))
+
+			#print mean_centroids.shape, variance_centroids.shape
+
+			colors = ['r', 'g', 'b'] # length of this should be `k`
+			#fig = figure()
+			#ax = fig.add_subplot(111, aspect='equal')
+
+			#m,v = centres
+			#print m
+			maxwt = np.max(wt)
+			minwt = np.min(wt)
+
+			# mc =  [(x - minwt)/(maxwt - minwt) for x in wt]
+			# mc = softmax(mc)
+			# X = gmm.sample_gaussian_mixture(mean_centroids, variance_centroids, samples = 100)
+			# plot(X[:,0], X[:,1], '.')
+
+			# for j in range(len(mc)):
+			# 	x1,x2 = gmm.gauss_ellipse_2d(mean_centroids[j], variance_centroids[j])
+			# 	plot(x1,x2,colors[j], linewidth = 2)
+
+			# show()
+
+
+
+	return centroids, weights
 
 
 
 
-def computeW2CentroidDiffInt(centroids, OSMatrixTestmu, OSMatrixTestsigma ):
+def computeW2CentroidDiffInt(centroids, weights, OSMatrixTestmu, OSMatrixTestsigma ):
 #w2distance1D(mu1, sig1, mu2, sig2)
 
 	tempmat = np.empty((OSMatrixTestmu.shape), dtype = 'object')
@@ -702,7 +819,7 @@ def computeW2CentroidDiffInt(centroids, OSMatrixTestmu, OSMatrixTestsigma ):
 					#print lencent
 					dist = []
 					for p in range(lencent):
-						dist.append(w2distance1D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
+						dist.append(w2distance1D(weights[i,j][p] * OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
 					#print dist
 					val = np.exp(-np.min(dist))# - np.min(dist)
 					#print val
@@ -711,7 +828,7 @@ def computeW2CentroidDiffInt(centroids, OSMatrixTestmu, OSMatrixTestsigma ):
 
 	return tempmat
 
-def computeW2CentroidDiffCol(centroids, OSMatrixTestmu, OSMatrixTestsigma ):
+def computeW2CentroidDiffCol(centroids, weights, OSMatrixTestmu, OSMatrixTestsigma ):
 #w2distance1D(mu1, sig1, mu2, sig2)
 
 	tempmat = np.empty((OSMatrixTestmu.shape), dtype = 'object')
@@ -726,7 +843,7 @@ def computeW2CentroidDiffCol(centroids, OSMatrixTestmu, OSMatrixTestsigma ):
 					#print lencent
 					dist = []
 					for p in range(lencent):
-						dist.append(w2distance2D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
+						dist.append(weights[i,j][p] * w2distance2D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
 					#print dist
 					val = np.exp(-np.min(dist))
 					#print val
