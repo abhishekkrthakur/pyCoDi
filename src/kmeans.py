@@ -227,7 +227,7 @@ def kmeans(data, nclusters, niter,delta,datatype, verbose = False):
 
 		xtoc = dist.argmin(axis = 1)
 		distances = dist[allX, xtoc]
-		avgdist = distances.mean()
+		avgdist = np.median(distances) #distances.mean()
 
 		if (1-delta) * oldDist <= avgdist <= oldDist \
 		or jiter==niter:

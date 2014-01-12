@@ -659,18 +659,18 @@ def kMeansInt(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 			print wt
 
 
-			# idx = xtoc
+			idx = xtoc
 
-			# centroids1 = centres
+			centroids1 = centres
 
-			# plot(data[idx==0,0],data[idx==0,1],'ob',
-			#      data[idx==1,0],data[idx==1,1],'or',
-			#      data[idx==2,0],data[idx==2,1],'og',
-			#      data[idx==3,0],data[idx==3,1],'oy',
-			#      data[idx==4,0],data[idx==4,1],'oc')
+			plot(data[idx==0,0],data[idx==0,1],'ob',
+			     data[idx==1,0],data[idx==1,1],'or',
+			     data[idx==2,0],data[idx==2,1],'og',
+			     data[idx==3,0],data[idx==3,1],'oy',
+			     data[idx==4,0],data[idx==4,1],'oc')
 
-			# plot(centroids1[:,0],centroids1[:,1],'sg',markersize=8)
-			# show()
+			plot(centroids1[:,0],centroids1[:,1],'sg',markersize=8)
+			show()
 
 	#print centroids[0,0].shape, weights[0,0].shape
 	return centroids, weights
@@ -787,16 +787,16 @@ def kMeansCol(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 			maxwt = np.max(wt)
 			minwt = np.min(wt)
 
-			# mc =  [(x - minwt)/(maxwt - minwt) for x in wt]
-			# mc = softmax(mc)
-			# X = gmm.sample_gaussian_mixture(mean_centroids, variance_centroids, samples = 100)
-			# plot(X[:,0], X[:,1], '.')
+			mc =  [(x - minwt)/(maxwt - minwt) for x in wt]
+			mc = softmax(mc)
+			X = gmm.sample_gaussian_mixture(mean_centroids, variance_centroids, samples = 100)
+			plot(X[:,0], X[:,1], '.')
 
-			# for j in range(len(mc)):
-			# 	x1,x2 = gmm.gauss_ellipse_2d(mean_centroids[j], variance_centroids[j])
-			# 	plot(x1,x2,colors[j], linewidth = 2)
+			for j in range(len(mc)):
+				x1,x2 = gmm.gauss_ellipse_2d(mean_centroids[j], variance_centroids[j])
+				plot(x1,x2,colors[j], linewidth = 2)
 
-			# show()
+			show()
 
 
 

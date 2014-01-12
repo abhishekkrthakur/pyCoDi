@@ -109,7 +109,7 @@ def mainLoop(screen, px):
 if __name__ == '__main__':
 	print "Loading Image ///// Parameter adjustment is not allowed at the moment ///"
 
-	imgFile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/pix2.png'
+	imgFile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/iar1.jpg'
 
 	print "converting image...."
 	image = readConvert(imgFile)
@@ -120,7 +120,7 @@ if __name__ == '__main__':
 	#pygame.display.quit()
 
 	print "creating OSMatrix"
-	OSMatrix = scaleSpaceRepresentation(image, scales = 2, octaves = 4)
+	OSMatrix = scaleSpaceRepresentation(image, scales = 2, octaves = 2)
 
 	cPickle.dump(OSMatrix, open('../OSMatrix_SCHREIBTISCH_DUNKEL2_0011_Scales_3___Octaves_3.pkl', 'wb'), -1)
 	print "pickle dumped"
@@ -188,13 +188,13 @@ if __name__ == '__main__':
 	# centroidsCol = np.vstack((centroidsCol1, centroidsCol2))
 
 
-	testfile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/pix2.png'
+	testfile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/iar2.jpg'
 
 	print "converting image...."
 	testimage = readConvert(testfile)
 
 	print "creating OSMatrix"
-	OSMatrixTest = scaleSpaceRepresentation(testimage, scales = 2, octaves = 4)
+	OSMatrixTest = scaleSpaceRepresentation(testimage, scales = 2, octaves = 2)
 
 	print "processing for intensity channel"
 	mu_c_intT, sig_c_intT, mu_s_intT, sig_s_intT = SSCS_Dist_Intensity(OSMatrixTest, 1.0, 10.0)
@@ -204,6 +204,11 @@ if __name__ == '__main__':
 
 	print "computeW2CentroidDiffInt"
 	tempmat1 = computeW2CentroidDiffInt(centroidsInt1, wtI1, mu_c_intT, sig_c_intT)
+
+	cPickle.dump(centroidsCol1, open('../centroids.pkl', 'wb'), -1)
+	cPickle.dump(wtC1, open('../weights.pkl', 'wb'), -1)
+	cPickle.dump(mu_c_colT, open('../OSMatrixTestmu.pkl', 'wb'), -1)
+	cPickle.dump(sig_c_colT, open('../OSMatrixTestsigma.pkl', 'wb'), -1)
 
 	print "computeW2CentroidDiffCol"
 	tempmat2 = computeW2CentroidDiffCol(centroidsCol1, wtC1, mu_c_colT, sig_c_colT)
