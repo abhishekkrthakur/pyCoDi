@@ -649,9 +649,10 @@ def kMeansInt(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 
 			centroids[i,j] = centres
 			wt = Counter( xtoc )
+			print wt
 			#wt = [(g[0], len(list(g[1]))) for g in itertools.groupby(xtoc)]
 			wt = wt.items()
-			print wt 
+			#print wt 
 			wt = [sec for (one,sec) in wt]
 			wt = [1 - (x/sum(wt)) for x in wt] #1 - (wt/sum(wt))
 			weights[i,j] = wt
@@ -819,7 +820,10 @@ def computeW2CentroidDiffInt(centroids, weights, OSMatrixTestmu, OSMatrixTestsig
 					#print lencent
 					dist = []
 					for p in range(lencent):
-						dist.append(w2distance1D(weights[i,j][p] * OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
+						try: 
+							dist.append(w2distance1D(weights[i,j][p] * OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
+						except:
+							dist.append(w2distance1D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
 					#print dist
 					val = np.exp(-np.min(dist))# - np.min(dist)
 					#print val
@@ -843,7 +847,10 @@ def computeW2CentroidDiffCol(centroids, weights, OSMatrixTestmu, OSMatrixTestsig
 					#print lencent
 					dist = []
 					for p in range(lencent):
-						dist.append(weights[i,j][p] * w2distance2D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
+						try:
+							dist.append(weights[i,j][p] * w2distance2D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
+						except:
+							dist.append(w2distance2D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
 					#print dist
 					val = np.exp(-np.min(dist))
 					#print val
