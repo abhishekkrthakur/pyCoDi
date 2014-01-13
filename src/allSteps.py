@@ -109,7 +109,7 @@ def mainLoop(screen, px):
 if __name__ == '__main__':
 	print "Loading Image ///// Parameter adjustment is not allowed at the moment ///"
 
-	imgFile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/iar1.jpg'
+	imgFile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/pix3.png'
 
 	print "converting image...."
 	image = readConvert(imgFile)
@@ -121,6 +121,14 @@ if __name__ == '__main__':
 
 	print "creating OSMatrix"
 	OSMatrix = scaleSpaceRepresentation(image, scales = 2, octaves = 2)
+
+	# plotImg(OSMatrix[0,0])
+	# plotImg(OSMatrix[0,1])
+	# plotImg(OSMatrix[1,0])
+	# plotImg(OSMatrix[1,1])
+	# plotImg(OSMatrix[2,0])
+	# plotImg(OSMatrix[2,1])
+
 
 	cPickle.dump(OSMatrix, open('../OSMatrix_SCHREIBTISCH_DUNKEL2_0011_Scales_3___Octaves_3.pkl', 'wb'), -1)
 	print "pickle dumped"
@@ -140,10 +148,10 @@ if __name__ == '__main__':
 																			left, upper, right, lower)
 
 	print "clustering all scales and octaves of the test region - intensity"
-	centroidsInt1, wtI1 = kMeansInt(mu_c_int_test, sig_c_int_test, n_iter = 1000, n_clusters = 3, delta = 0.001, verbose = 2)
+	centroidsInt1, wtI1 = kMeansInt(mu_c_int_test, sig_c_int_test, n_iter = 1000, n_clusters = 2, delta = 0.001, verbose = 2)
 
 	print "clustering all scales and octaves of the test region - color"
-	centroidsCol1, wtC1 = kMeansCol(mu_c_col_test, sig_c_col_test, n_iter = 1000, n_clusters = 3, delta = 0.001, verbose = 2)
+	centroidsCol1, wtC1 = kMeansCol(mu_c_col_test, sig_c_col_test, n_iter = 1000, n_clusters = 2, delta = 0.001, verbose = 2)
 
 
 
@@ -188,7 +196,7 @@ if __name__ == '__main__':
 	# centroidsCol = np.vstack((centroidsCol1, centroidsCol2))
 
 
-	testfile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/iar2.jpg'
+	testfile = '/Users/abhishek/Documents/Thesis/pyCoDi/pyCoDi/testimages/pix3.png'
 
 	print "converting image...."
 	testimage = readConvert(testfile)
@@ -215,6 +223,20 @@ if __name__ == '__main__':
 
 	#WInt1 = SScomputeCSWassersteinIntensity(mu_c_intT, sig_c_intT, mu_s_intT, sig_s_intT)
 	#WInt2 = SScomputeCSWassersteinColor(mu_c_colT, sig_c_colT, mu_s_colT, sig_s_colT)
+
+	plotImg(tempmat1[0,0])
+	plotImg(tempmat1[0,1])
+	plotImg(tempmat1[1,0])
+	plotImg(tempmat1[1,1])
+	plotImg(tempmat1[2,0])
+	plotImg(tempmat1[2,1])
+
+	plotImg(tempmat2[0,0])
+	plotImg(tempmat2[0,1])
+	plotImg(tempmat2[1,0])
+	plotImg(tempmat2[1,1])
+	plotImg(tempmat2[2,0])
+	plotImg(tempmat2[2,1])
 
 	tempmat1 = (SScombineScales(tempmat1))
 	tempmat2 = (SScombineScales(tempmat2))

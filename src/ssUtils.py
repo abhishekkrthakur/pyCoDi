@@ -125,12 +125,12 @@ def savePlot(data, filename):
 
 
 def plotImg(data):
-	rescaled = (255.0 / data.max() * (data - data.min())).astype(np.uint8)
-	cv2.imshow('plot of image', rescaled)
-	cv2.waitKey(0)
-	#pl.imshow(image, cmap = cm.gray) 
-	#pl.tight_layout() 
-	#pl.show()
+	# rescaled = (255.0 / data.max() * (data - data.min())).astype(np.uint8)
+	# cv2.imshow('plot of image', rescaled)
+	# cv2.waitKey(0)
+	pl.imshow(data, cmap = cm.gray) 
+	pl.tight_layout() 
+	pl.show()
 
 def scaleSpaceRepresentation(image, scales, octaves):
 	"""
@@ -649,28 +649,35 @@ def kMeansInt(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 
 			centroids[i,j] = centres
 			wt = Counter( xtoc )
-			print wt
+			#print wt
 			#wt = [(g[0], len(list(g[1]))) for g in itertools.groupby(xtoc)]
 			wt = wt.items()
-			#print wt 
+			print wt 
 			wt = [sec for (one,sec) in wt]
-			wt = [1 - (x/sum(wt)) for x in wt] #1 - (wt/sum(wt))
+			print wt
+			if len(wt) == 1:
+				wt = [1.0]
+			else:
+				wt = [1 - (x/sum(wt)) for x in wt] #1 - (wt/sum(wt))
+				wt = [(1 - x) for x in wt]
+			
 			weights[i,j] = wt
+			
 			print wt
 
 
-			idx = xtoc
+			# idx = xtoc
 
-			centroids1 = centres
+			# centroids1 = centres
 
-			plot(data[idx==0,0],data[idx==0,1],'ob',
-			     data[idx==1,0],data[idx==1,1],'or',
-			     data[idx==2,0],data[idx==2,1],'og',
-			     data[idx==3,0],data[idx==3,1],'oy',
-			     data[idx==4,0],data[idx==4,1],'oc')
+			# plot(data[idx==0,0],data[idx==0,1],'ob',
+			#      data[idx==1,0],data[idx==1,1],'or',
+			#      data[idx==2,0],data[idx==2,1],'og',
+			#      data[idx==3,0],data[idx==3,1],'oy',
+			#      data[idx==4,0],data[idx==4,1],'oc')
 
-			plot(centroids1[:,0],centroids1[:,1],'sg',markersize=8)
-			show()
+			# plot(centroids1[:,0],centroids1[:,1],'sg',markersize=8)
+			# show()
 
 	#print centroids[0,0].shape, weights[0,0].shape
 	return centroids, weights
@@ -761,9 +768,14 @@ def kMeansCol(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 			wt = Counter( xtoc )
 			#wt = [(g[0], len(list(g[1]))) for g in itertools.groupby(xtoc)]
 			wtx = wt.items() 
-			wt = [sec for (one,sec) in wtx]
-			one = [one for (one,sec) in wtx]
-			wt = [1 - (x/sum(wt)) for x in wt] #1 - (wt/sum(wt))
+			if len(wtx) == 1:
+				wt = [1.0]
+			else:
+				wt = [sec for (one,sec) in wtx]
+				one = [one for (one,sec) in wtx]
+				wt = [1 - (x/sum(wt)) for x in wt] #1 - (wt/sum(wt))
+				wt = [(1 - x) for x in wt]
+			
 			weights[i,j] = wt
 			# print wt
 			# print centres
@@ -784,19 +796,24 @@ def kMeansCol(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 
 			#m,v = centres
 			#print m
-			maxwt = np.max(wt)
-			minwt = np.min(wt)
+			#print wt
 
-			mc =  [(x - minwt)/(maxwt - minwt) for x in wt]
-			mc = softmax(mc)
-			X = gmm.sample_gaussian_mixture(mean_centroids, variance_centroids, samples = 100)
-			plot(X[:,0], X[:,1], '.')
+			##### Plot Clusters :-
+			# wt = map(int, wt)
+			# maxwt = np.max(wt)
+			# minwt = np.min(wt)
 
-			for j in range(len(mc)):
-				x1,x2 = gmm.gauss_ellipse_2d(mean_centroids[j], variance_centroids[j])
-				plot(x1,x2,colors[j], linewidth = 2)
+			# mc =  [(x - minwt)/(maxwt - minwt) for x in wt]
+			# mc = softmax(mc)
+			# X = gmm.sample_gaussian_mixture(mean_centroids, variance_centroids, samples = 100)
+			# plot(X[:,0], X[:,1], '.')
 
-			show()
+			# for j in range(len(mc)):
+			# 	x1,x2 = gmm.gauss_ellipse_2d(mean_centroids[j], variance_centroids[j])
+			# 	plot(x1,x2,colors[j], linewidth = 2)
+
+			# show()
+			##### Plotted! #####
 
 
 
@@ -820,10 +837,10 @@ def computeW2CentroidDiffInt(centroids, weights, OSMatrixTestmu, OSMatrixTestsig
 					#print lencent
 					dist = []
 					for p in range(lencent):
-						try: 
-							dist.append(w2distance1D(weights[i,j][p] * OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
-						except:
-							dist.append(w2distance1D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
+						#try: 
+							#dist.append(w2distance1D(weights[i,j][p] * OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
+						#except:
+						dist.append(w2distance1D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
 					#print dist
 					val = np.exp(-np.min(dist))# - np.min(dist)
 					#print val
