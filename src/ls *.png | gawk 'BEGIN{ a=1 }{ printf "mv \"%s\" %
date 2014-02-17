@@ -1,0 +1,4 @@
+ls *.png | gawk 'BEGIN{ a=1 }{ printf "mv \"%s\" %d.png\n", $0, a++ }' | bash
+
+
+ls *.ppm | gawk 'BEGIN{ a=1 }{ printf "sudo convert \"%s\" -resize 200x150! -compress none %d.png\n", $0, a++ }' | bash

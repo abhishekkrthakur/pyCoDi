@@ -10,7 +10,7 @@ import math
 import pylab as pl
 import matplotlib.cm as cm
 
-def smoothImg(image, sigmaX, sigmaY, ksize):
+def smoothImg(image, sigmaX = 3.0, sigmaY = 3.0, ksize = (9,9)):
     """
     Gaussian filter. Filter is applied to each dimension individually
     if an RGB image is passed

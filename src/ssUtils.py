@@ -61,6 +61,23 @@ import matplotlib.backends.backend_agg as agg
 from matplotlib.pylab import *
 import pypr.clustering.gmm as gmm
 
+
+def normal1(arr):
+    """
+    Linear normalization
+    http://en.wikipedia.org/wiki/Normalization_%28image_processing%29
+    """
+    arr = arr.astype('float')
+    # Do not touch the alpha channel
+    for i in range(3):
+        minval = arr[...,i].min()
+        maxval = arr[...,i].max()
+        if minval != maxval:
+            arr[...,i] -= minval
+            arr[...,i] *= (255.0/(maxval-minval))
+    return arr
+
+
 def plot_ellipse(mean, var, ec = 'k', alpha = 1):
 	evals, evecs = np.linalg.eig(var)
 	#print evals
@@ -125,19 +142,27 @@ def savePlot(data, filename):
 
 
 def plotImg(data):
-	# rescaled = (255.0 / data.max() * (data - data.min())).astype(np.uint8)
-	# cv2.imshow('plot of image', rescaled)
-	# cv2.waitKey(0)
+	#rescaled = (255.0 / data.max() * (data - data.min())).astype(np.uint8)
+	#cv2.imshow('plot of image', rescaled)
+	#cv2.waitKey(0)
 	pl.imshow(data, cmap = cm.gray) 
 	pl.tight_layout() 
 	pl.show()
+
+def plotImg2(data):
+	rescaled = (255.0 / data.max() * (data - data.min())).astype(np.uint8)
+	cv2.imshow('plot of image', rescaled)
+	cv2.waitKey(0)
+	#pl.imshow(rescaled, cmap = cm.gray) 
+	#pl.tight_layout() 
+	#pl.show()
 
 def scaleSpaceRepresentation(image, scales, octaves):
 	"""
 	Returns a Octvave-Scale matrix
 	Input: 3-Channel Image, number of scales, number of octaves
 	Output: A matrix which contains all images for octaves and scales
-			except the original image and original scales
+			
 	"""
 
 	#Oct = []
@@ -509,6 +534,7 @@ def SScombineScales(WInt):
 	for i in range(WInt.shape[0]):
 		for j in range(WInt.shape[1]):
 			#tempimg += np.sqrt(i+1) * WInt[i,j]
+			#if i > 1: tempimg += WInt[i,j]
 			tempimg += WInt[i,j]
 
 	tempimg = tempimg/(origshape0 * origshape1)
@@ -597,6 +623,7 @@ def cropTest(mu_c_int, sig_c_int, mu_s_int, sig_s_int, left, upper, right, lower
 	#55:140, 26:59
 	#(170, 82)
 	for i in range(mu_c_int.shape[0]):
+		#print (2**i)
 		le = int(left/(2**i))
 		up = int(upper/(2**i))
 		rt = int(right/(2**i))
@@ -612,6 +639,9 @@ def cropTest(mu_c_int, sig_c_int, mu_s_int, sig_s_int, left, upper, right, lower
 			sig_c[i,j] = sig_c_int[i,j][up:lo,le:rt]
 			mu_s[i,j] = mu_s_int[i,j][up:lo,le:rt]
 			sig_s[i,j] = sig_s_int[i,j][up:lo,le:rt]
+			#print mu_c[i,j].shape
+
+			#plotImg(sig_c[i,j])
 
 	return mu_c, sig_c, mu_s, sig_s
 
@@ -644,7 +674,7 @@ def kMeansInt(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 			if X.shape[0] <= ncluster:
 				ncluster = 1
 
-			centres, xtoc, dist = kmeans(data = X, nclusters = ncluster, niter = 50, delta = delta,datatype = 1, verbose = False)
+			centres, xtoc, dist = kmeans(data = X, nclusters = ncluster, niter = n_iter, delta = delta,datatype = 1, verbose = False)
 			
 
 			centroids[i,j] = centres
@@ -760,7 +790,7 @@ def kMeansCol(mu_c, sig_c, n_iter = 100, n_clusters = 3, delta = 0.001, verbose 
 			if X.shape[0] <= ncluster:
 				ncluster = 1
 
-			centres, xtoc, dist = kmeans(data = X, nclusters = ncluster, niter = 50, delta = delta,datatype = 2, verbose = False)
+			centres, xtoc, dist = kmeans(data = X, nclusters = ncluster, niter = n_iter, delta = delta,datatype = 2, verbose = False)
 
 			centroids[i,j] = centres
 
@@ -827,6 +857,14 @@ def computeW2CentroidDiffInt(centroids, weights, OSMatrixTestmu, OSMatrixTestsig
 
 	tempmat = np.empty((OSMatrixTestmu.shape), dtype = 'object')
 
+	print centroids[0,0].shape, centroids[0,0][0,0],centroids[0,0][0,1]
+	print centroids[0,1].shape, centroids[0,1]
+	print centroids[1,0].shape, centroids[1,0]
+	print centroids[1,1].shape, centroids[1,1]
+	print centroids[2,0].shape, centroids[2,0]
+	print centroids[2,1].shape, centroids[2,1][0,0],centroids[2,1][0,1]
+
+
 	for i in range(OSMatrixTestmu.shape[0]):
 		print i
 		for j in range(OSMatrixTestmu.shape[1]):
@@ -834,17 +872,20 @@ def computeW2CentroidDiffInt(centroids, weights, OSMatrixTestmu, OSMatrixTestsig
 			for r in range(OSMatrixTestmu[i,j].shape[0]):
 				for s in range(OSMatrixTestmu[i,j].shape[1]):
 					lencent = centroids[i,j].shape[0]
-					#print lencent
+					#print centroids[i,j].shape
 					dist = []
 					for p in range(lencent):
 						#try: 
-							#dist.append(w2distance1D(weights[i,j][p] * OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
+						#dist.append(w2distance1D(weights[i,j][p] * OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
 						#except:
-						dist.append(w2distance1D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
-					#print dist
-					val = np.exp(-np.min(dist))# - np.min(dist)
+						#print OSMatrixTestmu[i,j][r,s]
+						dist.append(w2distance1D(centroids[i,j][p,0],centroids[i,j][p,1],OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s]))
+					#if i == 2: print dist, np.min(dist)
+					val = np.exp(-np.min(dist)) + (5- np.log(np.min(dist)))
+					#val = np.max(val)
 					#print val
 					tempimg[r,s] = val
+			#tempimg = invertImg(tempimg)
 			tempmat[i,j] = tempimg
 
 	return tempmat
@@ -861,17 +902,20 @@ def computeW2CentroidDiffCol(centroids, weights, OSMatrixTestmu, OSMatrixTestsig
 			for r in range(OSMatrixTestmu[i,j].shape[0]):
 				for s in range(OSMatrixTestmu[i,j].shape[1]):
 					lencent = centroids[i,j].shape[0]
-					#print lencent
+					#print centroids[i,j].shape
 					dist = []
 					for p in range(lencent):
-						try:
-							dist.append(weights[i,j][p] * w2distance2D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
-						except:
-							dist.append(w2distance2D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
+						#try:
+						#dist.append(weights[i,j][p] * w2distance2D(OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s],centroids[i,j][p,0],centroids[i,j][p,1]))
+						#except:
+						dist.append(w2distance2D(centroids[i,j][p,0],centroids[i,j][p,1], OSMatrixTestmu[i,j][r,s], OSMatrixTestsigma[i,j][r,s]))
 					#print dist
-					val = np.exp(-np.min(dist))
+					val = np.exp(-np.min(dist)) + (5- np.log(np.min(dist)))
+
+
 					#print val
 					tempimg[r,s] = val
+			#tempimg = invertImg(tempimg)
 			tempmat[i,j] = tempimg
 
 	return tempmat
@@ -881,7 +925,8 @@ def invertImg(image):
 
 	im = Image.fromarray(np.uint8(image))
 	#plotImg(np.array(im))
-	inverted = Image.eval(im, lambda(x):255-x)
+	maxval = np.max(im)
+	inverted = Image.eval(im, lambda(x):maxval-x)
 	inverted = np.array(inverted)
 	#plotImg(inverted)
 	return inverted
